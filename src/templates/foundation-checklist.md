@@ -1,6 +1,6 @@
 # Foundation — <product name>
 
-> Written by /itp-architect. Every item is run, not read: the command, its exit code, and the
+> Written by /ztp-architect. Every item is run, not read: the command, its exit code, and the
 > date. An item that does not apply says `n/a` and why. On a new project, every applicable
 > item is green before the phase ends.
 

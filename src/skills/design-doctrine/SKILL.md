@@ -1,6 +1,6 @@
 ---
 name: design-doctrine
-description: How a story's screen is derived from the design system — what a new screen owes, what a derived one does not, and why nothing is measured outside the design-system phase. Loaded by /itp-design and /itp-design-system.
+description: How a story's screen is derived from the design system — what a new screen owes, what a derived one does not, and why nothing is measured outside the design-system phase. Loaded by /ztp-design and /ztp-design-system.
 ---
 # Design doctrine
 
@@ -26,7 +26,7 @@ The global design system lives in `docs/design-system.md` (components + tokens, 
   working are actually found.
 - A mockup is never handed over unrendered: it is opened and checked in every theme and form
   factor `docs/design-system.md` declares. "Could not verify" is an acceptable report; skipping in silence is not.
-- **Nothing is measured outside `/itp-design-system`.** No contrast ratios, no font sizes, no
+- **Nothing is measured outside `/ztp-design-system`.** No contrast ratios, no font sizes, no
   rendered widths, no positions, no `Δx` — not at design, not at implementation, not at review, and
   never as a test assertion. The tokens carry those decisions and the design-system phase measured
   them once, on a system that does not move between stories; remeasuring re-litigates it instead of
@@ -35,6 +35,6 @@ The global design system lives in `docs/design-system.md` (components + tokens, 
 - Inventing a component or token outside the design system is forbidden. Compose with what exists.
 - The HTML mockup is a reference, not code: the implementation uses the project's real components.
 - A need the system doesn't cover = a "design system gap" to report, never to fill freestyle.
-- Stories without UI skip `/itp-design`; a product without a user interface has no design system.
+- Stories without UI skip `/ztp-design`; a product without a user interface has no design system.
 - "Rendered" means opened the way `UI check` in `AGENTS.local.md` says — a browser for a web product, a
   simulator or a device for a mobile one. The doctrine does not change with it.

@@ -16,14 +16,14 @@ Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against docs/stories.md.
 Locate the dedicated `.worktrees/<id>` worktree, verify that it is on exactly
 `feature/<id>`, and perform every read and write there. Missing worktree, wrong
 branch, detached HEAD or the repository base directory itself → STOP and run
-`/itp-research <id>` first. Never create or switch branches here.
+`/ztp-research <id>` first. Never create or switch branches here.
 
 Read: docs/stories.md (the target story), docs/research/<id>.md (if it exists), docs/design-system.md and docs/designs/<id>/design.md (if they exist), docs/architecture.md, AGENTS.md
 Output structure: @templates/plan.md
 
 Apply the `testing-doctrine` skill when you write the test strategy.
 
-If docs/research/<id>.md doesn't exist, point out that /itp-research <id> is recommended before planning — without research, the plan relies on possibly stale docs. Continue only if I confirm.
+If docs/research/<id>.md doesn't exist, point out that /ztp-research <id> is recommended before planning — without research, the plan relies on possibly stale docs. Continue only if I confirm.
 
 If the story has UI, the plan follows the screen defined in docs/designs/<id>/design.md: it references the design system's components and never invents new ones. The HTML mockup is a reference, not a source of code.
 
@@ -53,13 +53,13 @@ invariant shipped with no net at all.
    of a bloated plan.
 4. If planning forces a structural choice (library, pattern, data model) with rejected alternatives, record it as an ADR in `docs/decisions/` (@templates/adr.md) — it will travel with the story branch.
 5. Write the plan to `docs/plans/<id>.md`, frontmatter `validated: no`.
-6. Validation, per `Plan validation` in AGENTS.local.md (missing file or setting → STOP: "No project settings. Run /itp-setup."):
+6. Validation, per `Plan validation` in AGENTS.local.md (missing file or setting → STOP: "No project settings. Run /ztp-setup."):
    - `human` — checkpoint (AskUserQuestion): "Validate this plan?" — options: Validate / I'll review it first. On Validate, set `validated: yes` in the plan's frontmatter.
    - `autonomous` — no checkpoint: re-read the plan against the story's acceptance criteria, then set `validated: yes` yourself. State plainly that nobody else looked at it.
-   /itp-execute refuses an unvalidated plan either way.
+   /ztp-execute refuses an unvalidated plan either way.
 
 If the plan file already exists when the command runs, skip straight to the validation checkpoint: show the summary and ask.
 
 Write no code. This command produces a plan, not code.
 
-End with: "Plan validated. Next: /itp-execute <id>" — or "Plan awaiting validation. Rerun /itp-plan <id> to validate." if it wasn't validated.
+End with: "Plan validated. Next: /ztp-execute <id>" — or "Plan awaiting validation. Rerun /ztp-plan <id> to validate." if it wasn't validated.

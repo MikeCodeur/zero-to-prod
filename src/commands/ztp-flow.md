@@ -10,7 +10,7 @@ allowed-tools:
   - Agent
   - Bash
 ---
-# itp-flow — The short track for a small story
+# ztp-flow — The short track for a small story
 
 Target story: $ARGUMENTS
 
@@ -35,7 +35,7 @@ You are FORBIDDEN from:
 
 ## Phase 0 — Prerequisites and eligibility (fail-closed)
 
-1. `AGENTS.local.md` exists? Missing → STOP: "This project has no settings. Run /itp-setup."
+1. `AGENTS.local.md` exists? Missing → STOP: "This project has no settings. Run /ztp-setup."
    Read `Story track`, `Flow threshold`, `Plan validation`, `Merge mode`, `Ship confirmation`,
    the project commands and the stages from it.
 2. `docs/prd.md`, `docs/stories.md` and `docs/architecture.md` exist? Any missing → STOP and
@@ -43,15 +43,15 @@ You are FORBIDDEN from:
 3. Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against `docs/stories.md`. No
    unambiguous match → list the available stories and stop.
 4. `Story track: full` → STOP: "This project runs every story on the full pipeline. Use
-   /itp-orchestrator <id>." `Story track: flow` → continue. `Story track: auto` → continue
+   /ztp-orchestrator <id>." `Story track: flow` → continue. `Story track: auto` → continue
    only if the story's complexity is at or below `Flow threshold`; above it, STOP and say:
-   "Story <id> is complexity <n>, above `Flow threshold` <t>. Run /itp-orchestrator <id>."
+   "Story <id> is complexity <n>, above `Flow threshold` <t>. Run /ztp-orchestrator <id>."
 
 **Escalation signals.** Whatever the score, this track does not carry a story that involves
 a schema migration, a genuinely new screen, a change to authorization or tenant scope, a
 change to an API contract, or an added dependency. If `docs/stories.md` already shows one,
 STOP now and say which: "Story <id> <signal>. That belongs on the full pipeline —
-/itp-orchestrator <id>."
+/ztp-orchestrator <id>."
 
 ## Phase 1 — Workspace (fail-closed)
 
@@ -81,14 +81,14 @@ scope and establish the facts **before** writing a single task:
 4. **Run the escalation check again, now that you have read the code.** Reading it is what
    reveals a migration hiding behind a nullable column, a screen that turns out to be new,
    or a guard that has to move. One signal → STOP, say which, and hand over:
-   "Escalating <id> to the full pipeline: <signal>. Run /itp-research <id>." The research
+   "Escalating <id> to the full pipeline: <signal>. Run /ztp-research <id>." The research
    you just did was needed either way; nothing is lost.
 5. Break the story into ordered tasks, each small and verifiable, resting on the facts you
    just established. A behaviour, business rule, data contract or interaction names the test
    that can fail; a purely presentational task names its visual check (per `UI check`) plus lint and typecheck
    instead — never a manufactured component test. `Test budget` from AGENTS.local.md; a plan
    that wants more says why. Where the tests go is settled in the `testing-doctrine` skill.
-6. Past roughly six tasks, the story is not small: say so and suggest `/itp-orchestrator <id>`
+6. Past roughly six tasks, the story is not small: say so and suggest `/ztp-orchestrator <id>`
    rather than growing a short-track plan into a long one.
 7. Write `docs/plans/<id>.md`, frontmatter `validated: no` and `track: flow`. **Cap it at
    ~150 lines.**
@@ -142,7 +142,7 @@ than two loops on this track was mis-tracked.
 CHECKPOINT — per `Ship confirmation`. `human`: show the verdict and ask via AskUserQuestion:
 "Ship now?" — options: Ship / Not now; only an explicit Ship proceeds. `automatic`: proceed.
 
-Then run `/itp-ship`'s flow unchanged: the mechanical gate
+Then run `/ztp-ship`'s flow unchanged: the mechanical gate
 (`grep -q '^Ship allowed: yes' docs/reviews/<id>.md`), then its exit gate — the cycle's only
 end-to-end and production-build run, per `E2E stage` and `Build stage` — then `Merge mode`,
 squash, then — after a proven merge — the deployment and the smoke test per

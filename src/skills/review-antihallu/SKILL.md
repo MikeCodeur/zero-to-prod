@@ -11,7 +11,7 @@ fresh context spots it better than the agent that wrote the code.
 
 **1. Establish what already passed, before running anything.** The implementer wrote
 `docs/verif/<id>.md`: the commands it ran, their exit codes, and the `Tree:` they covered.
-Check it with `itp-gate verif-current <id>` — or `git diff --quiet <Tree> HEAD -- .
+Check it with `ztp-gate verif-current <id>` — or `git diff --quiet <Tree> HEAD -- .
 ':(exclude)docs'` where the hook isn't installed.
 
 - **Current** (exit 0, `Verification status: complete`, every recorded exit code 0) → the

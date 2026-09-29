@@ -19,7 +19,7 @@ Bootstrap or verify the story's workspace exactly as AGENTS.md, "Where work happ
 specifies, and perform every read and write there. Report the absolute path, the branch and
 the environment files copied (names only, never values). Any conflict it names is a hard stop.
 
-If docs/reviews/stories.md is missing, or says `Stories ready: no`, say so: the breakdown hasn't passed /itp-stories-review, so this story may not match the PRD perimeter. Continue only if I confirm — this is a warning, not a block.
+If docs/reviews/stories.md is missing, or says `Stories ready: no`, say so: the breakdown hasn't passed /ztp-stories-review, so this story may not match the PRD perimeter. Continue only if I confirm — this is a warning, not a block.
 
 Read: docs/stories.md (the target story), docs/architecture.md, AGENTS.md
 Output structure: @templates/research.md
@@ -40,4 +40,4 @@ Proceed as follows:
 
 Write no code. Plan nothing: this command produces verified context, not a plan.
 
-End with: "Research ready in docs/research/<id>.md. Next step: /itp-design <id> (UI story) or /itp-plan <id>"
+End with: "Research ready in docs/research/<id>.md. Next step: /ztp-design <id> (UI story) or /ztp-plan <id>"

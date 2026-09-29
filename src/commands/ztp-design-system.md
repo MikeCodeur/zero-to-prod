@@ -9,7 +9,7 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 ---
-# itp-design-system — Global design system capture
+# ztp-design-system — Global design system capture
 
 This command does NOT design. The visuals (direction, mockups, tokens) are produced elsewhere — by an external design tool, by an internal design skill, or by the agent during story designs. Here, you capture and structure them into a doc agents can consume.
 
@@ -47,12 +47,12 @@ system can build — which is why no later phase repeats it. Beware a browser fo
 it repaints light frames dark whatever the page does.
 
 ### Step 4 — Write
-Write docs/design-system.md and commit it on the default branch (docs: design system). It is the project's single visual reference, read by /itp-design at every story.
+Write docs/design-system.md and commit it on the default branch (docs: design system). It is the project's single visual reference, read by /ztp-design at every story.
 
 ## Before you finish — check the project's design source
 
-`/itp-design` reads `Design source` from `AGENTS.local.md` (`internal` or `external`, plus
-`Design skill` / `Design tool`). It is set by `/itp-setup`. If it is still unset here, say so:
+`/ztp-design` reads `Design source` from `AGENTS.local.md` (`internal` or `external`, plus
+`Design skill` / `Design tool`). It is set by `/ztp-setup`. If it is still unset here, say so:
 every story will stop and ask until it is.
 
-End with: "Design system captured in docs/design-system.md. Story screens will build on it via /itp-design <story>."
+End with: "Design system captured in docs/design-system.md. Story screens will build on it via /ztp-design <story>."

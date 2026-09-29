@@ -1,4 +1,4 @@
-# idea-to-prod — Method documentation
+# zero-to-prod — Method documentation
 
 An agentic delivery pipeline for Claude Code and Codex, from an idea to production: frame the product, cut the perimeter that matters, build a verified foundation or conform to the existing codebase, then deliver it story by story, each one reviewed, deployed and smoke-tested. It applies to a web application, a mobile application, an internal tool, an API, a new project or an existing codebase, on any stack.
 One method = a suite of commands. One principle = no direct coding.
@@ -9,7 +9,7 @@ One method = a suite of commands. One principle = no direct coding.
 
 Three rules define the normal feature pipeline, enforced by the tooling — not by discipline:
 
-1. **No direct coding.** No code is written outside the pipeline. `/itp-execute` doesn't have the Write/Edit/Bash tools: the main context *cannot* code, it delegates to the `implementer` subagent. The rule lives in the tooling, not in good intentions.
+1. **No direct coding.** No code is written outside the pipeline. `/ztp-execute` doesn't have the Write/Edit/Bash tools: the main context *cannot* code, it delegates to the `implementer` subagent. The rule lives in the tooling, not in good intentions.
 2. **The context that writes never reviews itself.** An agent is blind to its own hallucinations and to its own gaps. Reviews run in fresh-context, read-only subagents — `reviewer` for the code, `stories-reviewer` for the breakdown.
 3. **Fail-closed.** No plan → no execution. A critical issue in review → no ship. Every gate blocks by default; nothing gets forced through.
 
@@ -21,7 +21,7 @@ A fourth rule joined them once the pipeline had been measured: **each check runs
 
 It is not a shortcut for features or uncertain work. A new feature, a shared-component redesign, a data model or migration, an API or contract change, authorization, security, business rules, persistence, a cross-cutting refactor or a dependency change goes back to the pipeline before coding continues.
 
-**Between Quick Fix and the full pipeline there is now a third lane** — `/itp-flow`, for a story that is genuinely small but is still a feature. See "The short track" below.
+**Between Quick Fix and the full pipeline there is now a third lane** — `/ztp-flow`, for a story that is genuinely small but is still a feature. See "The short track" below.
 
 ### Editing the workflow rules
 
@@ -29,11 +29,11 @@ It is not a shortcut for features or uncertain work. A new feature, a shared-com
 
 **This repository's own root `AGENTS.md` is a different document.** It holds the maintenance rules — "edit in `src/`" — and `install.sh` deliberately leaves it intact here (`is_method_repo`). It is not `src/AGENTS.md` and never becomes it.
 
-After changing the workflow, build both targets with `bin/itp-build.mjs` and test the relevant installer path. New installs receive `src/AGENTS.md`; a project's `AGENTS.md` is rebuilt on every install, so evolved rules reach existing projects the moment they update.
+After changing the workflow, build both targets with `bin/ztp-build.mjs` and test the relevant installer path. New installs receive `src/AGENTS.md`; a project's `AGENTS.md` is rebuilt on every install, so evolved rules reach existing projects the moment they update.
 
 ## Settings — `AGENTS.local.md`
 
-**A rule that applies everywhere lives in `AGENTS.md`. A value that varies lives in `AGENTS.local.md`**, in the project, created once by `/itp-setup` and never overwritten by the installer. Every pipeline command reads its settings there; none of them defaults a missing one — a value of `—` means the project does not have that thing, and the agent says so rather than substituting one.
+**A rule that applies everywhere lives in `AGENTS.md`. A value that varies lives in `AGENTS.local.md`**, in the project, created once by `/ztp-setup` and never overwritten by the installer. Every pipeline command reads its settings there; none of them defaults a missing one — a value of `—` means the project does not have that thing, and the agent says so rather than substituting one.
 
 Format: one setting per line, `Name: value`, no trailing comment. The value is everything after the colon, trimmed.
 
@@ -44,7 +44,7 @@ Format: one setting per line, `Name: value`, no trailing comment. The value is e
 | `Plan validation` | `human` (a checkpoint blocks until you validate) · `autonomous` (the agent validates its own plan) |
 | `Ship confirmation` | `human` (asked before any merge) · `automatic` |
 | `Story track` | `auto` (complexity picks the lane) · `full` · `flow` |
-| `Flow threshold` | complexity at or below which `auto` picks `/itp-flow` |
+| `Flow threshold` | complexity at or below which `auto` picks `/ztp-flow` |
 | `Design source` | `internal` (the agent draws, via `Design skill`) · `external` (a brief goes to `Design tool`) |
 | `Design skill` / `Design tool` | which one, when there is one. `—` is valid: the agent draws it itself |
 | `Test budget` | tests per story; a plan wanting more says why |
@@ -56,7 +56,7 @@ Format: one setting per line, `Name: value`, no trailing comment. The value is e
 | `Build stage` | when the production build runs: `ship-if-route` · `ship` · `review` · `ci` · `—` |
 | `Issue tracker` · `Worktree root` | where defects go, where worktrees live |
 
-Below the settings, `AGENTS.local.md` carries the **project profile** — `Product type`, `Target environment`, `UI check`, `E2E tool`, settled once by `/itp-architect` so no agent asks again or proposes a tool the project does not use — then the **project commands** — `Package manager`, `Test`, `Typecheck`, `E2E`, `Build`, `Deploy`, `Smoke test`, `Rollback` — and the **project conventions**, filled by `/itp-architect` (on a new project, the commands are `—` until the foundation exists). The commands are quoted verbatim by every agent that runs anything; none is ever invented.
+Below the settings, `AGENTS.local.md` carries the **project profile** — `Product type`, `Target environment`, `UI check`, `E2E tool`, settled once by `/ztp-architect` so no agent asks again or proposes a tool the project does not use — then the **project commands** — `Package manager`, `Test`, `Typecheck`, `E2E`, `Build`, `Deploy`, `Smoke test`, `Rollback` — and the **project conventions**, filled by `/ztp-architect` (on a new project, the commands are `—` until the foundation exists). The commands are quoted verbatim by every agent that runs anything; none is ever invented.
 
 **After editing this file by hand, rerun `install.sh`.** Settings are read straight from it and take effect at once, but the conventions only reach an agent through the assembled `AGENTS.md`.
 
@@ -70,42 +70,42 @@ One setup step and five framing steps, once per product — the design system on
 
 | Step | Command | Role | Output |
 | --- | --- | --- | --- |
-| Setup | `/itp-setup` | The project's settings and commands, once, before anything else | `AGENTS.local.md` |
-| PRD | `/itp-prd <idea>` | Idea validation, starting point, perimeter — the WHAT and the WHY | `docs/prd.md` |
-| Stories | `/itp-stories` | Breakdown into shippable, agentic-ready slices | `docs/stories.md` |
-| Stories Review | `/itp-stories-review` | Fresh-context review of the breakdown vs the PRD perimeter | `docs/reviews/stories.md` |
-| Architecture | `/itp-architect` | The HOW: stack, verified foundation, conventions, environments and deployment | `docs/architecture.md`, `docs/foundation.md`, `docs/deployment.md` + conventions and commands in `AGENTS.local.md` |
-| Design System | `/itp-design-system` | Captures tokens, components, UI patterns — and measures the contrasts, once | `docs/design-system.md` |
-| Research | `/itp-research <story>` | The real state of the code within the story's scope | `docs/research/<id>.md` |
-| Design | `/itp-design <story>` | The story's screen, anchored to the design system | `docs/designs/<id>/design.md` (+ one visual artifact for a new screen) |
-| Plan | `/itp-plan <story>` | Sequenced, small, verifiable tasks | `docs/plans/<id>.md` |
-| Execute | `/itp-execute <story>` | Implementation by the `implementer` subagent | code + tests + one commit + `docs/verif/<id>.md` |
-| Review | `/itp-review <story>` | Anti-hallucination review by the `reviewer` subagent | `docs/reviews/<id>.md` |
-| Ship | `/itp-ship <story>` | The exit gate, merge per `Merge mode` / `Ship confirmation`, deployment and smoke test | PR opened / feature in production, smoke test green |
+| Setup | `/ztp-setup` | The project's settings and commands, once, before anything else | `AGENTS.local.md` |
+| PRD | `/ztp-prd <idea>` | Idea validation, starting point, perimeter — the WHAT and the WHY | `docs/prd.md` |
+| Stories | `/ztp-stories` | Breakdown into shippable, agentic-ready slices | `docs/stories.md` |
+| Stories Review | `/ztp-stories-review` | Fresh-context review of the breakdown vs the PRD perimeter | `docs/reviews/stories.md` |
+| Architecture | `/ztp-architect` | The HOW: stack, verified foundation, conventions, environments and deployment | `docs/architecture.md`, `docs/foundation.md`, `docs/deployment.md` + conventions and commands in `AGENTS.local.md` |
+| Design System | `/ztp-design-system` | Captures tokens, components, UI patterns — and measures the contrasts, once | `docs/design-system.md` |
+| Research | `/ztp-research <story>` | The real state of the code within the story's scope | `docs/research/<id>.md` |
+| Design | `/ztp-design <story>` | The story's screen, anchored to the design system | `docs/designs/<id>/design.md` (+ one visual artifact for a new screen) |
+| Plan | `/ztp-plan <story>` | Sequenced, small, verifiable tasks | `docs/plans/<id>.md` |
+| Execute | `/ztp-execute <story>` | Implementation by the `implementer` subagent | code + tests + one commit + `docs/verif/<id>.md` |
+| Review | `/ztp-review <story>` | Anti-hallucination review by the `reviewer` subagent | `docs/reviews/<id>.md` |
+| Ship | `/ztp-ship <story>` | The exit gate, merge per `Merge mode` / `Ship confirmation`, deployment and smoke test | PR opened / feature in production, smoke test green |
 
 ### Framing (once per product)
 
-**/itp-setup** — asks four questions and writes `AGENTS.local.md`: where a story lands, who validates a plan, who draws the screens, and the project's own commands (pre-filled from the lockfile and the package manifest — never invented). Everything else has a default you can change later. It runs once, before the PRD, and it is the only creator of that file.
+**/ztp-setup** — asks four questions and writes `AGENTS.local.md`: where a story lands, who validates a plan, who draws the screens, and the project's own commands (pre-filled from the lockfile and the package manifest — never invented). Everything else has a default you can change later. It runs once, before the PRD, and it is the only creator of that file.
 
-**/itp-prd** — frames the product by interviewing the user, one question at a time. First the **idea validation**: the problem and what it costs today, the users, and the one hypothesis the project stands on with the signal that will verify it — the section that carries the frame when there is no existing product to copy. Then the **starting point** (new project, existing codebase, replacement of a product or system) and the **product type**, which decide what `/itp-architect` does; an optional **reference** (existing product, legacy system, mockups) used as a living spec; the **perimeter** — the core loop, each in-scope feature scored for complexity (1-5, heavy features default to out of scope) — and the exhaustive **out-of-scope** list; an optional differentiation; constraints and measurable success criteria. Nothing is filled without validation. The WHAT and the WHY, never the HOW.
+**/ztp-prd** — frames the product by interviewing the user, one question at a time. First the **idea validation**: the problem and what it costs today, the users, and the one hypothesis the project stands on with the signal that will verify it — the section that carries the frame when there is no existing product to copy. Then the **starting point** (new project, existing codebase, replacement of a product or system) and the **product type**, which decide what `/ztp-architect` does; an optional **reference** (existing product, legacy system, mockups) used as a living spec; the **perimeter** — the core loop, each in-scope feature scored for complexity (1-5, heavy features default to out of scope) — and the exhaustive **out-of-scope** list; an optional differentiation; constraints and measurable success criteria. Nothing is filled without validation. The WHAT and the WHY, never the HOW.
 
-**/itp-stories** — breaks the PRD into agentic-ready user stories (`agentic-stories` skill): each an end-to-end shippable slice, with acceptance criteria that can become tests, agentic notes (files involved, traps), and a complexity score (1-5, PRD scale): a 4 flags its risk, a 5 is split before planning.
+**/ztp-stories** — breaks the PRD into agentic-ready user stories (`agentic-stories` skill): each an end-to-end shippable slice, with acceptance criteria that can become tests, agentic notes (files involved, traps), and a complexity score (1-5, PRD scale): a 4 flags its risk, a 5 is split before planning.
 
-**/itp-stories-review** — reviews the breakdown in a fresh context (`stories-reviewer` subagent, read-only, no shell) against the PRD it came from. It walks the PRD perimeter table first — a core-loop feature covered by no story is the most expensive defect in the pipeline, invisible until ship — then hunts out-of-scope leaks, technical layers disguised as stories, criteria that can't become tests, broken dependency order, unsplit complexity-5 stories, malformed ids and overlaps. Report ends with `Max severity:` and `Stories ready: yes|no`. This is a **soft gate**: it doesn't block mechanically, it is surfaced by `/itp-status` and warned about by `/itp-research`. A bad split costs a markdown edit here, and cycles later.
+**/ztp-stories-review** — reviews the breakdown in a fresh context (`stories-reviewer` subagent, read-only, no shell) against the PRD it came from. It walks the PRD perimeter table first — a core-loop feature covered by no story is the most expensive defect in the pipeline, invisible until ship — then hunts out-of-scope leaks, technical layers disguised as stories, criteria that can't become tests, broken dependency order, unsplit complexity-5 stories, malformed ids and overlaps. Report ends with `Max severity:` and `Stories ready: yes|no`. This is a **soft gate**: it doesn't block mechanically, it is surfaced by `/ztp-status` and warned about by `/ztp-research`. A bad split costs a markdown edit here, and cycles later.
 
-**/itp-architect** — follows the PRD's starting point.
+**/ztp-architect** — follows the PRD's starting point.
 - **Existing codebase**: maps it (`codebase-analysis` skill) — structure, conventions, patterns, anchor points — and conforms to it; it never proposes a rewrite.
 - **New project**: the user does not need to be an architecture expert. The agent **recommends one stack**, derived from the PRD and from what the team already masters, with the reason for each structural choice and the alternatives it ranks lower. The user accepts or changes it; each choice becomes an ADR. The agent then **builds the foundation** with the stack's official generators — structure, formatter, linter, type checker, test runner with one passing example test, documented environment variables, the scripts the pipeline needs — and maps what it built like any existing codebase.
 
 Either way it writes the conventions into `AGENTS.local.md` as rules an agent can apply, completes the project commands, and **defines the environments and the deployment once** in `docs/deployment.md`: production and any staging, how a deployment is triggered, the smoke test, the rollback and what it does not undo. It ends by **running the foundation checklist** (`docs/foundation.md`): install, example test, type check, lint, build, start in the target environment, secrets ignored, commands and conventions true to the code, ADRs, deployment defined. On a new project every applicable item is green before the phase ends; on an existing codebase a red item is reported and the user decides whether it blocks. The foundation is the only code that does not go through a story — no feature code is written here.
 
-**/itp-design-system** — captures the global design system into `docs/design-system.md`: tokens, available components (inventoried from the codebase), imposed UI patterns, the themes and form factors every screen must hold, do/don't. A product without a user interface skips it. It records and structures — it never invents visuals. **And it is the only phase that measures anything**: every text/surface pair the system can produce, in every theme, contrast measured rather than judged by eye. Done once on a system that does not move between stories, that measurement holds for every screen it can build — which is why no later phase repeats it.
+**/ztp-design-system** — captures the global design system into `docs/design-system.md`: tokens, available components (inventoried from the codebase), imposed UI patterns, the themes and form factors every screen must hold, do/don't. A product without a user interface skips it. It records and structures — it never invents visuals. **And it is the only phase that measures anything**: every text/surface pair the system can produce, in every theme, contrast measured rather than judged by eye. Done once on a system that does not move between stories, that measurement holds for every screen it can build — which is why no later phase repeats it.
 
 ### Cycle (per story)
 
-**/itp-research** — explores the story's real scope before any planning: files involved in their current state, verified APIs and functions (exact name, signature, location), traps and dependencies. It checks the story's PREMISE, not just that the things it names exist — a function that exists and throws on the story's case invalidates it — and re-scores the story's complexity now that the code has been read, with a split proposal when the verdict is 5. Framing docs go stale as soon as story 2 ships; research anchors the plan in today's code. It is anti-hallucination applied upstream: the review detects, the research prevents. Capped at ~200 lines — three agents read it afterwards and pay for its length.
+**/ztp-research** — explores the story's real scope before any planning: files involved in their current state, verified APIs and functions (exact name, signature, location), traps and dependencies. It checks the story's PREMISE, not just that the things it names exist — a function that exists and throws on the story's case invalidates it — and re-scores the story's complexity now that the code has been read, with a split proposal when the verdict is 5. Framing docs go stale as soon as story 2 ships; research anchors the plan in today's code. It is anti-hallucination applied upstream: the review detects, the research prevents. Capped at ~200 lines — three agents read it afterwards and pay for its length.
 
-**/itp-design** — derives the story's screen from the design system. Fail-closed: no `docs/design-system.md`, no design. The path is a project setting (`Design source`), never a per-story choice.
+**/ztp-design** — derives the story's screen from the design system. Fail-closed: no `docs/design-system.md`, no design. The path is a project setting (`Design source`), never a per-story choice.
 
 The phase starts with one question: **is this a new screen, or a derived one?**
 - **Derived** — the story composes, extends or restates something the product already ships. It produces `design.md` listing the deltas, and **no mockup**: drawing an existing screen draws the product twice, and the real screen gets opened in its target environment at the end of Execute, which is where the defects that stop a feature working are actually found.
@@ -113,25 +113,25 @@ The phase starts with one question: **is this a new screen, or a derived one?**
 
 A mockup is rendered and looked at — in the target environment, in every theme and form factor the design system declares — and that step sends you back rather than ticking a box. **Nothing is measured**: contrast, font sizes, positions and `Δx` are design-system values, settled once upstream. Downstream, look for what is BROKEN. Needs the system doesn't cover become "design system gaps" — recorded, never invented. Stories without UI skip this step.
 
-**/itp-plan** — breaks the story into ordered tasks, each small and verifiable, based on the research. Anticipates touched files and the test strategy, and carries the run's interdicts — what must not change, verifiable by the reviewer. Capped at ~250 lines. Never produces code. The plan is validated before execution, and `validated: yes` in its frontmatter is what execute checks.
+**/ztp-plan** — breaks the story into ordered tasks, each small and verifiable, based on the research. Anticipates touched files and the test strategy, and carries the run's interdicts — what must not change, verifiable by the reviewer. Capped at ~250 lines. Never produces code. The plan is validated before execution, and `validated: yes` in its frontmatter is what execute checks.
 
-**/itp-execute** — delegates to the `implementer` subagent on the story's worktree. Task by task: the task written as a whole block, its **focused** suite run on that task's own test files, its checkbox ticked. No red-first ceremony, no invariant mutations, a test budget of `Test budget`. After the last task: the full suite once, the type check once. **Not the end-to-end suite, not the production build** — those run at ship. Any task that ships a screen gets opened in its target environment. Then, before the single story commit, it writes `docs/verif/<id>.md`. Fail-closed: no plan, or a plan without `validated: yes`, no execution. The main context has neither Write, nor Edit, nor Bash. If a previous review blocked the story, it runs in **fix mode**: the findings come first.
+**/ztp-execute** — delegates to the `implementer` subagent on the story's worktree. Task by task: the task written as a whole block, its **focused** suite run on that task's own test files, its checkbox ticked. No red-first ceremony, no invariant mutations, a test budget of `Test budget`. After the last task: the full suite once, the type check once. **Not the end-to-end suite, not the production build** — those run at ship. Any task that ships a screen gets opened in its target environment. Then, before the single story commit, it writes `docs/verif/<id>.md`. Fail-closed: no plan, or a plan without `validated: yes`, no execution. The main context has neither Write, nor Edit, nor Bash. If a previous review blocked the story, it runs in **fix mode**: the findings come first.
 
-**/itp-review** — delegates to the `reviewer` subagent: fresh context, read-only. It starts at the verification record and checks it mechanically (`itp-gate verif-current <id>`): a record whose tree matches the commit proves the suite and the type check for this exact code, and they are not re-run. Missing, stale, or a non-zero exit code and the reviewer runs them itself. It then judges the story diff (`git diff <default-branch>...feature/<id>`), verifies every API and import in it actually exists, and proves the tests bite by neutralizing the line the story turns on — **running only the test files that name that invariant** — and counting the reds. A guard nothing turns red on is untested, whatever the suite total says. The mutation is temporary and restored before the report is written; it is the single exception to read-only. Each issue classified critical / major / minor. The report ends with `Max severity:` and `Ship allowed:`.
+**/ztp-review** — delegates to the `reviewer` subagent: fresh context, read-only. It starts at the verification record and checks it mechanically (`ztp-gate verif-current <id>`): a record whose tree matches the commit proves the suite and the type check for this exact code, and they are not re-run. Missing, stale, or a non-zero exit code and the reviewer runs them itself. It then judges the story diff (`git diff <default-branch>...feature/<id>`), verifies every API and import in it actually exists, and proves the tests bite by neutralizing the line the story turns on — **running only the test files that name that invariant** — and counting the reds. A guard nothing turns red on is untested, whatever the suite total says. The mutation is temporary and restored before the report is written; it is the single exception to read-only. Each issue classified critical / major / minor. The report ends with `Max severity:` and `Ship allowed:`.
 
-**/itp-ship** — starts with the mechanical gate: `grep '^Ship allowed: yes' docs/reviews/<id>.md` — no file or a `no` verdict stops everything. Then it runs the **exit gate, the one place in the whole cycle where the expensive checks happen**: the end-to-end suite once, and the production build when a route or a manifest moved — per `E2E stage` and `Build stage`. Any red sends the story back to fix mode. Then it follows `Merge mode` and `Ship confirmation`:
+**/ztp-ship** — starts with the mechanical gate: `grep '^Ship allowed: yes' docs/reviews/<id>.md` — no file or a `no` verdict stops everything. Then it runs the **exit gate, the one place in the whole cycle where the expensive checks happen**: the end-to-end suite once, and the production build when a route or a manifest moved — per `E2E stage` and `Build stage`. Any red sends the story back to fix mode. Then it follows `Merge mode` and `Ship confirmation`:
 
-- `pr` + `human` — pushes, opens a clean PR with the review verdict in its body, and stops there: merging is a human decision. Rerun `/itp-ship <id>` after the merge to deploy, smoke-test and clean up.
+- `pr` + `human` — pushes, opens a clean PR with the review verdict in its body, and stops there: merging is a human decision. Rerun `/ztp-ship <id>` after the merge to deploy, smoke-test and clean up.
 - `pr` + `automatic` — squash-merges, then deploys.
 - `local` — no PR at all: squash-merges into the target branch locally, for a solo flow with no review platform. `human` still asks before merging.
 
 **Whatever the mode, the merge is a squash**: one story, one commit on the target branch. Cleanup — removing the worktree, deleting the branch — happens only on a PROVEN merge (`gh pr view … --json state` returning exactly `MERGED`, never a promise, and never `git merge-base --is-ancestor`, which a squash merge always defeats) and a green smoke test.
 
-**A merge is not a ship: production is.** After the proven merge, `/itp-ship` follows `docs/deployment.md`: it waits for an automatic deployment, runs the `Deploy` command, or walks the user through a manual procedure; then it runs the smoke test against production. Red → the story is not shipped: the documented rollback runs (asked first under `Ship confirmation: human`), what it cannot undo is stated, the defect goes to the issue tracker, and the worktree stays for the fix. No `docs/deployment.md`, or an open point blocking the deployment → it stops at "merged, not deployed" and never improvises one.
+**A merge is not a ship: production is.** After the proven merge, `/ztp-ship` follows `docs/deployment.md`: it waits for an automatic deployment, runs the `Deploy` command, or walks the user through a manual procedure; then it runs the smoke test against production. Red → the story is not shipped: the documented rollback runs (asked first under `Ship confirmation: human`), what it cannot undo is stated, the defect goes to the issue tracker, and the worktree stays for the fix. No `docs/deployment.md`, or an open point blocking the deployment → it stops at "merged, not deployed" and never improvises one.
 
-### The short track — `/itp-flow`
+### The short track — `/ztp-flow`
 
-A story of complexity 1 does not need six cold contexts to read the same four documents. `/itp-flow` runs the same cycle in three: **research and plan fused into one pass**, then the same `implementer`, then the same fresh-context `reviewer`, then ship.
+A story of complexity 1 does not need six cold contexts to read the same four documents. `/ztp-flow` runs the same cycle in three: **research and plan fused into one pass**, then the same `implementer`, then the same fresh-context `reviewer`, then ship.
 
 **Nothing is relaxed.** Dedicated worktree, validated plan, fresh-context review with its neutralization proof, rendered-screen pass, `Ship allowed` gate, test budget — all identical. What disappears is repetition, not verification. The research does not vanish either: its verified facts, with their `path:line`, become the "Verified facts" section at the top of `docs/plans/<id>.md` (`track: flow`, capped at ~150 lines) — one file fewer to write, and one fewer for three downstream agents to read.
 
@@ -146,17 +146,17 @@ Two modes, and a complexity score never chooses the directory — it only choose
 | Explicit Quick Fix | Repository base directory | `Target branch`; another branch checked out → stop and ask |
 | Feature / story | Dedicated `.worktrees/<story-id>/` worktree | Exact `feature/<story-id>` |
 
-A feature stays in its worktree from the first phase to the last. **The method says where the work happens, not how the workspace is built**: the entry command — `/itp-research` or `/itp-flow` — creates or verifies it, through a `worktree-manager` subagent when the environment provides one, otherwise with plain `git worktree add`. Either way it imports the untracked `.env*` files and installs dependencies there, and never runs a baseline test suite: the default branch's state is not this story's problem.
+A feature stays in its worktree from the first phase to the last. **The method says where the work happens, not how the workspace is built**: the entry command — `/ztp-research` or `/ztp-flow` — creates or verifies it, through a `worktree-manager` subagent when the environment provides one, otherwise with plain `git worktree add`. Either way it imports the untracked `.env*` files and installs dependencies there, and never runs a baseline test suite: the default branch's state is not this story's problem.
 
 Every later phase resolves the absolute path and verifies the exact branch. Missing worktree, wrong branch, detached HEAD or a second branch name is a hard stop — never `git switch`, `checkout`, `stash`, or an `-isolated` suffix. One agent, one working directory.
 
 ### Utilities
 
-**/itp-orchestrator <story>** — the conductor. It chains one story's full cycle in a single command, picking the track from `Story track` and handing over to `/itp-flow` when the story qualifies. What it does NOT do: replace the method. Each phase follows the exact contract of its standalone command, code and review stay delegated to the same subagents, and it stops on two blocking questions (real AskUserQuestion calls, not sentences): **validate the plan** and **confirm the ship**. Use it when the cycle is routine; use the individual commands when you want to inspect or steer a phase. It is fail-closed on framing: no PRD, stories or architecture → it stops and points at the missing step.
+**/ztp-orchestrator <story>** — the conductor. It chains one story's full cycle in a single command, picking the track from `Story track` and handing over to `/ztp-flow` when the story qualifies. What it does NOT do: replace the method. Each phase follows the exact contract of its standalone command, code and review stay delegated to the same subagents, and it stops on two blocking questions (real AskUserQuestion calls, not sentences): **validate the plan** and **confirm the ship**. Use it when the cycle is routine; use the individual commands when you want to inspect or steer a phase. It is fail-closed on framing: no PRD, stories or architecture → it stops and points at the missing step.
 
-**/itp-help** — prints the pipeline map: the phases in order, the single rule, the per-story cycle, the short track. The user-facing cheat sheet. User-invoked only.
+**/ztp-help** — prints the pipeline map: the phases in order, the single rule, the per-story cycle, the short track. The user-facing cheat sheet. User-invoked only.
 
-**/itp-status** — derives the project's state from the files: settings, framing docs, and per story — complexity, research, design, plan (draft or validated, `flow` or `full`), checkbox progress, verification record, review verdict, PR/merge state, dependency blocks — then prints the next useful command per story and for the project. Nothing is stored: the files are the state.
+**/ztp-status** — derives the project's state from the files: settings, framing docs, and per story — complexity, research, design, plan (draft or validated, `flow` or `full`), checkbox progress, verification record, review verdict, PR/merge state, dependency blocks — then prints the next useful command per story and for the project. Nothing is stored: the files are the state.
 
 ## Data & storage
 
@@ -171,7 +171,7 @@ Everything the pipeline produces is markdown under `docs/`, versioned by git. No
 | Design | `docs/design-system.md` (global) ; `docs/designs/<id>/` per story — the mockup is a reference, never production code |
 | Pipeline state | derived — file existence + `Ship allowed:` verdict + git. Never stored, so never stale |
 
-Lifecycle: framing docs are committed on the default branch at the end of their phase. Story docs travel with the story on `feature/<id>`. **One commit per story, not one per task** — the implementer's single commit carries the research, the design, the plan with its ticked checkboxes, the verification record and the code of every task; `/itp-ship` commits the review. The plan file is the live progress tracker, never a commit trigger. Branch commits are squashed at merge, so the default branch gets one commit per story. Every PR therefore carries its own research, design, plan, verification and review: the audit trail is the PR itself.
+Lifecycle: framing docs are committed on the default branch at the end of their phase. Story docs travel with the story on `feature/<id>`. **One commit per story, not one per task** — the implementer's single commit carries the research, the design, the plan with its ticked checkboxes, the verification record and the code of every task; `/ztp-ship` commits the review. The plan file is the live progress tracker, never a commit trigger. Branch commits are squashed at merge, so the default branch gets one commit per story. Every PR therefore carries its own research, design, plan, verification and review: the audit trail is the PR itself.
 
 **A defect is not a story.** A bug, a stale assertion, a screen that renders wrong — it goes to the issue tracker, never into `docs/stories.md`, which holds the product perimeter. A review finding stays in its review report unless a human decides otherwise.
 
@@ -181,7 +181,7 @@ Five building blocks:
 
 | Block | Location | Role |
 | --- | --- | --- |
-| Commands | `.claude/commands/itp-*.md` · `.codex/skills/itp-*` | The process — each pipeline step is a command |
+| Commands | `.claude/commands/ztp-*.md` · `.codex/skills/ztp-*` | The process — each pipeline step is a command |
 | Skills | `.claude/skills/` · `.codex/skills/` | The know-how — reusable, auto-invocable |
 | Agents | `.claude/agents/` | Isolated execution — separate contexts, restricted tools |
 | Templates | `templates/` | The deliverables' structure — every doc has an imposed skeleton |
@@ -214,11 +214,11 @@ Three mechanical, file-based gates. None of them is a judgment call — each is 
 
 | Gate | Check | Blocks |
 | --- | --- | --- |
-| Plan validated | `docs/plans/<id>.md` frontmatter has `validated: yes` | any code commit on `feature/<id>`, and `/itp-execute` |
+| Plan validated | `docs/plans/<id>.md` frontmatter has `validated: yes` | any code commit on `feature/<id>`, and `/ztp-execute` |
 | Verification current | `docs/verif/<id>.md` records a `Tree:` matching the commit outside `docs/` | nothing by itself — it decides whether the reviewer trusts the run or repeats it |
-| Ship allowed | `docs/reviews/<id>.md` ends with `Ship allowed: yes` | `/itp-ship`, entirely |
+| Ship allowed | `docs/reviews/<id>.md` ends with `Ship allowed: yes` | `/ztp-ship`, entirely |
 
-`src/hooks/itp-gate.sh` implements all three (`plan-validated`, `verif-current`, `ship-allowed`, plus `pre-commit`).
+`src/hooks/ztp-gate.sh` implements all three (`plan-validated`, `verif-current`, `ship-allowed`, plus `pre-commit`).
 
 **Only a critical blocks the ship.** A `major` is a real defect — traced in the report, fixed in a next cycle. A `minor` is style. Neither reopens a fix loop: a loop is a full implementation pass plus a full review pass, and spending one on naming costs half a story and closes no defect. Two loops at most, and only for a critical or a review that could not complete.
 
@@ -259,31 +259,31 @@ The installer always targets the directory you run it from — your project's ro
 
 | Mode | From your project's root | Effect |
 | --- | --- | --- |
-| Project (default) | `curl -fsSL https://raw.githubusercontent.com/MikeCodeur/idea-to-prod/main/install.sh \| bash` — or `<clone>/install.sh` | `.claude/` + `templates/` + `AGENTS.md`/`CLAUDE.md` in the current project |
-| Global | `<clone>/install.sh --global` | Tooling in `~/.claude` (commands everywhere), payload in `~/.claude/idea-to-prod` |
-| Per project, after global | `~/.claude/idea-to-prod/install.sh init` | Drops templates + rules in the current project |
-| Update | `<clone>/install.sh update` — or the one-liner with `-s -- update` | Cleanly replaces the method's tooling (manifest-tracked, no ghosts, your own commands untouched), refreshes unmodified templates (modified ones are warned about, never overwritten — add `--force` to overwrite them too), stamps `.claude/.itp-version` |
+| Project (default) | `curl -fsSL https://raw.githubusercontent.com/MikeCodeur/zero-to-prod/main/install.sh \| bash` — or `<clone>/install.sh` | `.claude/` + `templates/` + `AGENTS.md`/`CLAUDE.md` in the current project |
+| Global | `<clone>/install.sh --global` | Tooling in `~/.claude` (commands everywhere), payload in `~/.claude/zero-to-prod` |
+| Per project, after global | `~/.claude/zero-to-prod/install.sh init` | Drops templates + rules in the current project |
+| Update | `<clone>/install.sh update` — or the one-liner with `-s -- update` | Cleanly replaces the method's tooling (manifest-tracked, no ghosts, your own commands untouched), refreshes unmodified templates (modified ones are warned about, never overwritten — add `--force` to overwrite them too), stamps `.claude/.ztp-version` |
 
 `AGENTS.md` is rebuilt on every run from `src/AGENTS.md` plus the project's `AGENTS.local.md`, which the installer never touches. `CLAUDE.md` is not shipped: the installer creates it (or appends to it) with `@AGENTS.md`, so Claude Code loads the rules. `install.sh --check` lists what has drifted in an install — run it before updating a project, or the update eats the work silently.
 
-The first thing to run in a fresh project is `/itp-setup`: without `AGENTS.local.md`, every pipeline command stops and asks for it.
+The first thing to run in a fresh project is `/ztp-setup`: without `AGENTS.local.md`, every pipeline command stops and asks for it.
 
 ## Multi-tool support (Claude Code / Codex)
 
-One canonical source (`src/`, Claude-shaped, the richest target), one installer, per-tool emission — no forked copies. `./install.sh --target claude|codex|all`, project or global scope, drives a per-tool adapter; the Codex transform runs through a zero-dependency Node build (`bin/itp-build.mjs`). What ports and what degrades:
+One canonical source (`src/`, Claude-shaped, the richest target), one installer, per-tool emission — no forked copies. `./install.sh --target claude|codex|all`, project or global scope, drives a per-tool adapter; the Codex transform runs through a zero-dependency Node build (`bin/ztp-build.mjs`). What ports and what degrades:
 
 | Building block | Claude Code | Codex |
 | --- | --- | --- |
 | Rules (`AGENTS.md`) | native (+`CLAUDE.md` import) | **native** |
 | Skills (`SKILL.md`) | native | **native** (same open standard) |
 | Templates | copied | copied |
-| Commands (`itp-*`) | `.claude/commands/*.md` | emitted as `.codex/skills/*` |
+| Commands (`ztp-*`) | `.claude/commands/*.md` | emitted as `.codex/skills/*` |
 | File/grep gates (`validated:`, `Ship allowed:`, `Tree:`) | ✅ | ✅ |
 | "No direct coding" via tool permissions | ✅ mechanical | ~ agent sandbox (coarser) |
 | Subagent model routing | ✅ | note only |
 | `AskUserQuestion` checkpoints | ✅ structured | prose |
 
-**The honest line:** the file-based gates port to every tool because they are shell-on-markdown, not tool permissions. The permission and isolation guarantees are Claude-mechanical and degrade elsewhere. Rather than pretend otherwise, idea-to-prod moves enforcement into the **repo**.
+**The honest line:** the file-based gates port to every tool because they are shell-on-markdown, not tool permissions. The permission and isolation guarantees are Claude-mechanical and degrade elsewhere. Rather than pretend otherwise, zero-to-prod moves enforcement into the **repo**.
 
 ### Repo-level enforcement (`--hooks`)
 
@@ -291,4 +291,4 @@ Opt-in git hooks (installed via `core.hooksPath`, reversible with `git config --
 
 - **pre-commit** — no code on `feature/<id>` without `docs/plans/<id>.md` → `validated: yes` (docs-only commits pass).
 
-So "no code without a validated plan" holds whatever the harness — enforcement lives in the repo, not the tool. There is no push-time hook: `/itp-ship` squash-merges, so a merged story leaves no merge commit to detect client-side. The ship gate belongs server-side — `itp-gate ship-allowed <id>` in CI or branch protection.
+So "no code without a validated plan" holds whatever the harness — enforcement lives in the repo, not the tool. There is no push-time hook: `/ztp-ship` squash-merges, so a merged story leaves no merge commit to detect client-side. The ship gate belongs server-side — `ztp-gate ship-allowed <id>` in CI or branch protection.

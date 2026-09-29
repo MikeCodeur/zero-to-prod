@@ -52,7 +52,7 @@ Define how the product reaches production, following @templates/deployment.md, a
 - the **smoke test**: the few checks that prove production is alive and the core loop answers, runnable right after a deployment;
 - the **rollback**: the exact procedure that restores the previous version, and what it does not undo (a migration, sent emails, external calls).
 
-Write it to `docs/deployment.md`. Fill `Deploy`, `Smoke test` and `Rollback` in the "Project commands" block of `AGENTS.local.md` when they are commands; a step that is manual stays `—` there and is described in `docs/deployment.md`. Nothing here is invented: a hosting target not chosen yet is written as an open point, and `/itp-ship` will stop on it.
+Write it to `docs/deployment.md`. Fill `Deploy`, `Smoke test` and `Rollback` in the "Project commands" block of `AGENTS.local.md` when they are commands; a step that is manual stays `—` there and is described in `docs/deployment.md`. Nothing here is invented: a hosting target not chosen yet is written as an open point, and `/ztp-ship` will stop on it.
 
 ## Step 5 — Verify the foundation
 Run every item of @templates/foundation-checklist.md for real, using the project commands quoted verbatim, and record the result — command, exit code — in `docs/foundation.md`. On an existing codebase the checklist verifies what is there: a red item is reported, never silently fixed, and whether it blocks is the user's decision. On a new project every applicable item must be green before the phase ends: a foundation that does not build is not a foundation.
@@ -60,4 +60,4 @@ Run every item of @templates/foundation-checklist.md for real, using the project
 ## Step 6 — Commit
 Run `./install.sh --target <the targets this project uses>` so the conventions reach `AGENTS.md`. Commit the foundation, `docs/architecture.md`, `docs/deployment.md`, `docs/foundation.md`, the ADRs and `AGENTS.local.md` on the default branch (`chore: foundation` for the code, `docs: architecture` for the documents).
 
-End with: "Architecture ready, foundation verified (docs/foundation.md), deployment defined (docs/deployment.md). Next step: /itp-design-system (products with a user interface), then /itp-research <story>"
+End with: "Architecture ready, foundation verified (docs/foundation.md), deployment defined (docs/deployment.md). Next step: /ztp-design-system (products with a user interface), then /ztp-research <story>"

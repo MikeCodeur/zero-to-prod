@@ -27,4 +27,4 @@ Why it runs here: a defect in `docs/stories.md` costs a markdown edit now, and c
 
 ## What this review is NOT
 
-Not an implementation review. How a story will be built belongs to `/itp-research` and `/itp-plan`. Judge the breakdown, not the future code — and never rewrite the stories: report, the human fixes.
+Not an implementation review. How a story will be built belongs to `/ztp-research` and `/ztp-plan`. Judge the breakdown, not the future code — and never rewrite the stories: report, the human fixes.

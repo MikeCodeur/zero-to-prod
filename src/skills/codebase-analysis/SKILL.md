@@ -1,6 +1,6 @@
 ---
 name: codebase-analysis
-description: Analyzes existing code you didn't write — structure, conventions, patterns. Use during the Architecture and Research phases of the idea-to-prod pipeline, and to map an existing codebase or a freshly built foundation.
+description: Analyzes existing code you didn't write — structure, conventions, patterns. Use during the Architecture and Research phases of the zero-to-prod pipeline, and to map an existing codebase or a freshly built foundation.
 ---
 # Codebase analysis
 

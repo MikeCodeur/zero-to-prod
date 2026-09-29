@@ -1,6 +1,6 @@
 # <project> — settings and conventions
 
-**This file is yours. `install.sh` never overwrites it, and `/itp-setup` is its only creator.**
+**This file is yours. `install.sh` never overwrites it, and `/ztp-setup` is its only creator.**
 `AGENTS.md` belongs to the method and is rebuilt on every update — write nothing there.
 
 Every value below is read by the pipeline commands. One setting per line, `Name: value`, nothing
@@ -41,8 +41,8 @@ Worktree root:     .worktrees/
 | Plan validation | `human` (a checkpoint blocks until you validate) · `autonomous` (the agent validates its own plan) |
 | Ship confirmation | `human` (asked before any merge) · `automatic` |
 | Design source | `internal` (the agent draws, using `Design skill`) · `external` (a brief goes to `Design tool`) |
-| Story track | `auto` (the story's complexity picks the lane) · `full` (always the six-phase pipeline) · `flow` (always `/itp-flow`) |
-| Flow threshold | complexity at or below which `auto` picks `/itp-flow` |
+| Story track | `auto` (the story's complexity picks the lane) · `full` (always the six-phase pipeline) · `flow` (always `/ztp-flow`) |
+| Flow threshold | complexity at or below which `auto` picks `/ztp-flow` |
 | Test budget | tests per story — a plan wanting more says why |
 | Verification mode | `record` (the implementer records what it ran; the reviewer checks the record instead of re-running) · `rerun` (the reviewer runs everything itself) |
 | Full suite | when the whole unit suite runs: `execute-end` · `ship` · `both` |
@@ -53,7 +53,7 @@ Worktree root:     .worktrees/
 
 ## Project profile
 
-Settled once by `/itp-architect`, read by every agent. What is written here is never asked
+Settled once by `/ztp-architect`, read by every agent. What is written here is never asked
 again, and a tool it does not name is never proposed — no browser test on a product that has
 no browser.
 
@@ -85,9 +85,9 @@ Rollback:          —
 ```
 
 A command left at `—` is one the agents cannot run: they say so rather than guess one.
-`Deploy`, `Smoke test` and `Rollback` are filled by `/itp-architect` when they are commands; a
+`Deploy`, `Smoke test` and `Rollback` are filled by `/ztp-architect` when they are commands; a
 manual step stays `—` here and is described in `docs/deployment.md`.
 
 ## Project conventions
 
-<< structure, stack, patterns, naming, commit rules — filled by /itp-architect, as rules an agent can apply >>
+<< structure, stack, patterns, naming, commit rules — filled by /ztp-architect, as rules an agent can apply >>

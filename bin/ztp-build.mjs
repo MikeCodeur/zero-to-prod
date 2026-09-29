@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// itp-build — emit idea-to-prod tooling for a given target CLI from the canonical src/.
+// ztp-build — emit zero-to-prod tooling for a given target CLI from the canonical src/.
 // Zero external dependencies. Produces a staging tree that install.sh copies into place.
 //
-//   node bin/itp-build.mjs --target codex --src ./src --out /tmp/itp-stg
+//   node bin/ztp-build.mjs --target codex --src ./src --out /tmp/ztp-stg
 //
 // Targets:
 //   claude  identity: commands/, skills/, agents/ copied as-is (parity with the bash path)
@@ -57,7 +57,7 @@ function isDir(p) { try { return statSync(p).isDirectory(); } catch { return fal
 
 function codexSkillFromCommand(name, text, outSkillsDir) {
   const { fm, body } = splitFrontmatter(text);
-  const description = fmScalar(fm, "description") || `idea-to-prod command ${name}`;
+  const description = fmScalar(fm, "description") || `zero-to-prod command ${name}`;
   const argHint = fmScalar(fm, "argument-hint");
   const skillDir = join(outSkillsDir, name);
   ensureDir(join(skillDir, "agents"));
@@ -65,15 +65,15 @@ function codexSkillFromCommand(name, text, outSkillsDir) {
   // SKILL.md: open-standard frontmatter (name + description) + transformed body.
   const skillFm = `---\nname: ${name}\ndescription: ${description}\n---\n`;
   const preamble =
-    `> idea-to-prod command, emitted for Codex. Run it explicitly. ` +
+    `> zero-to-prod command, emitted for Codex. Run it explicitly. ` +
     `Delegation ("the Agent tool" / "subagent_type: X") maps to your Codex subagent ` +
     `mechanism (/agent) using the X skill; file/grep gates and the git hooks are unchanged.\n\n`;
   writeFileSync(join(skillDir, "SKILL.md"), skillFm + preamble + derefInjections(body));
 
-  // agents/openai.yaml: the /itp-* interface.
+  // agents/openai.yaml: the /ztp-* interface.
   const defaultPrompt = argHint
     ? `Run ${name} ${argHint}`
-    : `Run the ${name} step of the idea-to-prod pipeline.`;
+    : `Run the ${name} step of the zero-to-prod pipeline.`;
   const yaml =
     `interface:\n` +
     `  display_name: "/${name}"\n` +
@@ -84,7 +84,7 @@ function codexSkillFromCommand(name, text, outSkillsDir) {
 
 function codexSkillFromAgent(name, text, outSkillsDir) {
   const { fm, body } = splitFrontmatter(text);
-  const description = fmScalar(fm, "description") || `idea-to-prod ${name}`;
+  const description = fmScalar(fm, "description") || `zero-to-prod ${name}`;
   const model = fmScalar(fm, "model");
   const skillDir = join(outSkillsDir, name);
   ensureDir(skillDir);
@@ -137,11 +137,11 @@ const target = args.target;
 const src = args.src;
 const out = args.out;
 if (!target || !src || !out) {
-  console.error("usage: itp-build.mjs --target claude|codex --src <dir> --out <dir>");
+  console.error("usage: ztp-build.mjs --target claude|codex --src <dir> --out <dir>");
   process.exit(2);
 }
 ensureDir(out);
 if (target === "codex") emitCodex(src, out);
 else if (target === "claude") emitClaude(src, out);
 else { console.error(`unknown target: ${target}`); process.exit(2); }
-console.log(`itp-build: emitted ${target} into ${out}`);
+console.log(`ztp-build: emitted ${target} into ${out}`);

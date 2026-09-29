@@ -7,13 +7,13 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 ---
-You are framing an idea-to-prod project. Subject: $ARGUMENTS
+You are framing an zero-to-prod project. Subject: $ARGUMENTS
 
 Use this template as the output structure:
 @templates/prd.md
 
 ## Step 0 — The project's settings (fail-closed)
-`AGENTS.local.md` must exist. Missing → STOP: "This project has no settings yet. Run /itp-setup, then rerun /itp-prd." Nothing below runs without it.
+`AGENTS.local.md` must exist. Missing → STOP: "This project has no settings yet. Run /ztp-setup, then rerun /ztp-prd." Nothing below runs without it.
 
 Present → read `Merge mode`, `Target branch`, `Plan validation` and `Design source`, and repeat them in the final recap: whoever writes the PRD should see what they are committing to before writing it.
 
@@ -34,4 +34,4 @@ Proceed as follows, asking me one question at a time:
 9. Fill each section of the template with my answers. Fill nothing you haven't validated with me.
 10. Write the result to `docs/prd.md` and commit it on the default branch (docs: prd).
 
-End with: "PRD ready in docs/prd.md. Next step: /itp-stories"
+End with: "PRD ready in docs/prd.md. Next step: /ztp-stories"

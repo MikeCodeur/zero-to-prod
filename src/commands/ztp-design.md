@@ -9,7 +9,7 @@ allowed-tools:
   - AskUserQuestion
   - Bash
 ---
-# itp-design — Story design, anchored to the design system
+# ztp-design — Story design, anchored to the design system
 
 Target story: $ARGUMENTS
 
@@ -17,7 +17,7 @@ Resolve the story id, then locate its dedicated `.worktrees/<id>` worktree.
 Before any read or write, verify that it is on exactly `feature/<id>` and use
 that absolute path for the whole command. Missing worktree, wrong branch,
 detached HEAD or the repository base directory itself → STOP and run
-`/itp-research <id>` to bootstrap the feature workspace. Never switch branches.
+`/ztp-research <id>` to bootstrap the feature workspace. Never switch branches.
 
 ## Execution contract (non-negotiable)
 You are FORBIDDEN from:
@@ -33,7 +33,7 @@ Apply the `design-doctrine` skill: it carries the full rules this command applie
 
 ### Step 1 — Prerequisites (fail-closed)
 `docs/design-system.md` must exist and be non-empty.
-- Missing or empty → STOP: "No design system found in docs/design-system.md. Set it up first via /itp-design-system, then rerun /itp-design." Produce NO design.
+- Missing or empty → STOP: "No design system found in docs/design-system.md. Set it up first via /ztp-design-system, then rerun /ztp-design." Produce NO design.
 - Present → load it. Its tokens and components are the only visual source, whichever path is taken. Read the real values from the code as well (the stylesheet that defines the tokens): the document describes intent, the stylesheet holds the numbers, and the numbers win.
 
 ### Step 2 — Read the project's design source (fail-closed)
@@ -44,7 +44,7 @@ The path is **fixed once per project**, not decided per story. Read `Design sour
 - `external` → the agent writes the brief and the tool named by `Design tool` produces the screens.
 
 **No `AGENTS.local.md`, or the setting absent, or still `—`: stop.** Return the question to the
-caller — "Which design source does this project use? Run /itp-setup, or set `Design source` in
+caller — "Which design source does this project use? Run /ztp-setup, or set `Design source` in
 AGENTS.local.md." Do not pick a default: a project silently set to one path produces designs its
 owner never chose.
 
@@ -83,7 +83,7 @@ deliverable, chosen by `Design source`, never both:
   message**: it survives the session and travels to the tool. The result comes back as
   `mockup.html` in the same folder, and dropping it there **is** the validation. Nothing came
   back → the phase is unfinished: stop and say so. Never generate in its place, never hand
-  over to `/itp-plan`.
+  over to `/ztp-plan`.
 
 **Fidelity: finished.** The design system exists, so there is no direction left to explore —
 only a screen to derive. Real tokens, typography, spacing and copy, and every state the screen
@@ -129,4 +129,4 @@ derived screen; `design.md` plus the one visual artifact for a new one. On the i
 the agent validates that artifact visually, rendered, in every declared theme and form factor; on the
 external path, the mockup being dropped in the folder is the validation.
 
-End with: "Design ready (docs/designs/<id>/design.md, + mockup.html or brief.md when the screen is new), rendered and checked. Next step: /itp-plan <id>"
+End with: "Design ready (docs/designs/<id>/design.md, + mockup.html or brief.md when the screen is new), rendered and checked. Next step: /ztp-plan <id>"

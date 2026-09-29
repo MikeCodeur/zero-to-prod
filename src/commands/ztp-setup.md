@@ -1,5 +1,5 @@
 ---
-description: Create the project's AGENTS.local.md — the settings and commands the pipeline reads. Runs once, before /itp-prd.
+description: Create the project's AGENTS.local.md — the settings and commands the pipeline reads. Runs once, before /ztp-prd.
 allowed-tools:
   - Read
   - Glob
@@ -8,7 +8,7 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 ---
-# itp-setup — The project's settings, once
+# ztp-setup — The project's settings, once
 
 This command writes `AGENTS.local.md`: the file that belongs to the project and that
 `install.sh` never overwrites. Every pipeline command reads its settings there.
@@ -23,7 +23,7 @@ This command is the **only** creator of `AGENTS.local.md` — `install.sh` never
 finding it absent is the normal case, not an error.
 
 If `AGENTS.local.md` already exists → do NOT overwrite it. Show its current settings and stop:
-"Settings already in AGENTS.local.md. Edit that file directly, or delete it and rerun /itp-setup."
+"Settings already in AGENTS.local.md. Edit that file directly, or delete it and rerun /ztp-setup."
 
 ## Workflow
 
@@ -45,10 +45,10 @@ Only these four. Each one changes what the pipeline does; the rest is pre-filled
 3. **Who draws the screens** — `Design source`: `internal` (the agent produces the mockup, with
    the skill named in `Design skill`) or `external` (the agent writes a brief and an external
    tool named in `Design tool` produces it). A product without a user interface answers `—`:
-   no story will run `/itp-design`.
+   no story will run `/ztp-design`.
 4. **The project's commands** — test, typecheck, e2e, build, pre-filled from Step 1. A command
    the project does not have stays `—`; never invent one. On a new project they are all `—`
-   for now: `/itp-architect` fills them once the foundation exists, with `Deploy`,
+   for now: `/ztp-architect` fills them once the foundation exists, with `Deploy`,
    `Smoke test` and `Rollback`.
 
 `Ship confirmation` follows `Plan validation` unless the user says otherwise: a project that
@@ -59,7 +59,7 @@ Write `AGENTS.local.md` from @templates/agents-local.md, filled with the answers
 defaults. Keep its shape exactly: one setting per line, `Name: value`, **no trailing comment** —
 the commands read the value as everything after the colon, so a comment on the line becomes part
 of the value. The accepted values stay in the table below the block. Leave "Project profile" and "Project conventions"
-as their placeholders — `/itp-architect` fills them from the codebase, existing or just built.
+as their placeholders — `/ztp-architect` fills them from the codebase, existing or just built.
 
 Commit it on the default branch (`chore: project settings`). It is a project file, not a story file.
 
@@ -68,4 +68,4 @@ Run `./install.sh --target <the targets this project uses>` so the rules and the
 assembled into `AGENTS.md`. If `install.sh` is not in the project, say so: the settings are
 written, the assembled file is one install away.
 
-End with: "Settings written to AGENTS.local.md. Next step: /itp-prd <idea>"
+End with: "Settings written to AGENTS.local.md. Next step: /ztp-prd <idea>"

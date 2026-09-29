@@ -1,6 +1,6 @@
-# Idea to Prod — the method
+# Zero to Prod — the method
 
-Idea to Prod is a software delivery method driven by AI agents (Claude Code, Codex). It takes a project from an idea to production: a web or mobile application, an internal tool, an API, a new project or an existing codebase, on any stack.
+Zero to Prod is a software delivery method driven by AI agents (Claude Code, Codex). It takes a project from an idea to production: a web or mobile application, an internal tool, an API, a new project or an existing codebase, on any stack.
 
 It rests on one observation: an agent produces plausible code, and plausible is not correct. The method therefore organizes the work so that every claim is verified by a context that did not write it, and every step blocks until the previous one is proven.
 
@@ -22,12 +22,12 @@ This document explains the method. The exact rules live in `src/AGENTS.md` and i
 
 | Step | Command | What it produces |
 |---|---|---|
-| Settings | `/itp-setup` | `AGENTS.local.md`: where a story lands, who validates a plan, who draws the screens, the project's commands. Four questions; everything else has a default. |
-| Product frame | `/itp-prd <idea>` | `docs/prd.md`: the WHAT and the WHY, never the HOW. |
-| Breakdown | `/itp-stories` | `docs/stories.md`: stories shippable end to end. |
-| Breakdown review | `/itp-stories-review` | `docs/reviews/stories.md`: perimeter coverage checked in a fresh context. |
-| Architecture | `/itp-architect` | The stack, a verified foundation, the conventions, the environments and the deployment. |
-| Design system | `/itp-design-system` | `docs/design-system.md`: tokens, components, measured contrasts. Only for a product with a user interface. |
+| Settings | `/ztp-setup` | `AGENTS.local.md`: where a story lands, who validates a plan, who draws the screens, the project's commands. Four questions; everything else has a default. |
+| Product frame | `/ztp-prd <idea>` | `docs/prd.md`: the WHAT and the WHY, never the HOW. |
+| Breakdown | `/ztp-stories` | `docs/stories.md`: stories shippable end to end. |
+| Breakdown review | `/ztp-stories-review` | `docs/reviews/stories.md`: perimeter coverage checked in a fresh context. |
+| Architecture | `/ztp-architect` | The stack, a verified foundation, the conventions, the environments and the deployment. |
+| Design system | `/ztp-design-system` | `docs/design-system.md`: tokens, components, measured contrasts. Only for a product with a user interface. |
 
 **The product frame** starts with **idea validation**: the problem and what it costs today, the users, and the unproven hypothesis the project stands on, with the measurable signal that will confirm it. This is what stands in for a specification when no reference product exists. Then come the **starting point** (new project, existing codebase, replacement of a product or system) and the **product type**, an optional **reference** (existing product, legacy system, mockups), the **perimeter** (each feature scored for complexity 1 to 5), the exhaustive **out-of-scope** list, the constraints and measurable success criteria. Nothing is filled in without the user's validation.
 
@@ -58,10 +58,10 @@ One story = one `feature/<id>` branch = one dedicated worktree = one PR = one co
 
 **Three tracks, the same gates.**
 - *Full pipeline*: the six steps, six contexts.
-- *Short track* (`/itp-flow`): for a simple story, research and plan fused into one pass, then the same implementer, the same review, the same ship. A migration, a new screen, an authorization or API contract change, or an added dependency sends it back to the full pipeline, even mid-flight.
+- *Short track* (`/ztp-flow`): for a simple story, research and plan fused into one pass, then the same implementer, the same review, the same ship. A migration, a new screen, an authorization or API contract change, or an added dependency sends it back to the full pipeline, even mid-flight.
 - *Quick Fix*: on explicit request, for a local, reversible adjustment with no business impact (a color, a label). Everything else goes through the pipeline.
 
-`/itp-orchestrator` chains a full cycle with two human checkpoints (validate the plan, confirm the ship); `/itp-status` shows progress and the next useful command.
+`/ztp-orchestrator` chains a full cycle with two human checkpoints (validate the plan, confirm the ship); `/ztp-status` shows progress and the next useful command.
 
 ## 4. Gates and tests
 
@@ -72,7 +72,7 @@ One story = one `feature/<id>` branch = one dedicated worktree = one PR = one co
 | Ship allowed | `Ship allowed: yes` at the end of `docs/reviews/<id>.md` | The ship, entirely |
 | Production verified | Green smoke test after deployment | The story's cleanup; a red one triggers the rollback |
 
-These gates are file reads, not judgment calls: they work the same under Claude Code, under Codex and in CI (`itp-gate.sh`).
+These gates are file reads, not judgment calls: they work the same under Claude Code, under Codex and in CI (`ztp-gate.sh`).
 
 **Testing doctrine.** Volume is not a safety net: a test budget per story (25 by default), and a plan that wants more must say why. Each rule is tested at the layer where it lives, once. The criterion that replaces the count: **a test that stays green when the rule it names is deleted is worse than no test.** No "red first" ceremony during implementation; the neutralization proof happens in review, in a fresh context, where it actually finds defects.
 
@@ -80,10 +80,10 @@ These gates are file reads, not judgment calls: they work the same under Claude 
 
 One source (`src/`), one installer, one output per tool:
 
-    curl -fsSL https://raw.githubusercontent.com/MikeCodeur/idea-to-prod/main/install.sh | bash                      # Claude Code
-    curl -fsSL https://raw.githubusercontent.com/MikeCodeur/idea-to-prod/main/install.sh | bash -s -- --target codex  # Codex
+    curl -fsSL https://raw.githubusercontent.com/MikeCodeur/zero-to-prod/main/install.sh | bash                      # Claude Code
+    curl -fsSL https://raw.githubusercontent.com/MikeCodeur/zero-to-prod/main/install.sh | bash -s -- --target codex  # Codex
 
-**The project's nature is settled once.** `/itp-architect` writes a *project profile* in `AGENTS.local.md` — product type, target environment, how a screen is checked (`UI check`, or `—` when there is no user interface), end-to-end tool. Every agent reads it and never asks again, nor proposes a tool it does not name: no browser test on a C++ program.
+**The project's nature is settled once.** `/ztp-architect` writes a *project profile* in `AGENTS.local.md` — product type, target environment, how a screen is checked (`UI check`, or `—` when there is no user interface), end-to-end tool. Every agent reads it and never asks again, nor proposes a tool it does not name: no browser test on a C++ program.
 
 **No stack is assumed.** The pipeline never runs a command it invented: it runs the project's own commands (test, typecheck, e2e, build, deploy, smoke test), quoted from `AGENTS.local.md`. The same stages hold for a web app, a mobile app, a C++ program or a library: in a compiled language the compile step is the type check, the "production build" is the release build, and "production" is wherever users get the product — a server, a registry, an installer.
 

@@ -1,6 +1,6 @@
 ---
 name: implementer
-description: Implements a planned story in an isolated context. Invoked by /itp-execute.
+description: Implements a planned story in an isolated context. Invoked by /ztp-execute.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: opus
 skills:
@@ -46,7 +46,7 @@ task that ships one — every defect that made a feature not work at all was fou
 3. **The verification record** — `docs/verif/<id>.md`, structured by
    templates/verification-record.md. Stage everything (`git add -A`), take `git write-tree`,
    write it as the `Tree:` line, and record each command with its exit code and counts. This
-   is what lets the review trust your run instead of replaying it; `itp-gate verif-current
+   is what lets the review trust your run instead of replaying it; `ztp-gate verif-current
    <id>` checks it against the commit. Never record a run you did not make: the gate compares
    trees, but only you can make the file honest.
 4. **One single commit for the whole story**, tests green, carrying the story docs (research,

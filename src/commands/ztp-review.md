@@ -8,7 +8,7 @@ allowed-tools:
   - Write
   - Bash
 ---
-# itp-review — Delegated review + gate
+# ztp-review — Delegated review + gate
 
 Target story: $ARGUMENTS
 
@@ -23,7 +23,7 @@ If you can't invoke the Agent tool, stop and report the error. Don't improvise.
 ## Workflow
 
 ### Step 1 — Delegate
-Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against docs/stories.md. Read AGENTS.local.md for the project commands and `Test budget` — missing file → STOP: "No project settings. Run /itp-setup."
+Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against docs/stories.md. Read AGENTS.local.md for the project commands and `Test budget` — missing file → STOP: "No project settings. Run /ztp-setup."
 Locate `.worktrees/<id>`, verify its branch is exactly `feature/<id>`, and use
 that absolute worktree as the reviewer working directory and report location.
 Missing worktree, wrong branch, detached HEAD or repository base → STOP; never
@@ -36,8 +36,8 @@ switch branches. Then invoke the Agent tool:
 Wait for the verdict. If the Agent call fails, times out, returns no report, or returns a report without both exact verdict lines, write `docs/reviews/<id>.md` yourself with `Review status: blocked`, the concrete failure cause, missing information/evidence, and the exact adaptation required. End it with `Max severity: critical` and `Ship allowed: no` when review completeness is compromised. Do not replace the failure with a vague "review failed" message.
 
 ### Step 2 — Report
-Write the full report to docs/reviews/<id>.md. It MUST include a `Review status: complete|blocked` line, and, when blocked, the sections `Failure cause`, `Missing`, and `Required adaptation` with concrete details. It MUST end with the exact lines `Max severity: ...` and `Ship allowed: yes` or `Ship allowed: no` — /itp-ship greps that line, and without it the ship stays blocked. A single critical = no. An incomplete review is never a pass.
+Write the full report to docs/reviews/<id>.md. It MUST include a `Review status: complete|blocked` line, and, when blocked, the sections `Failure cause`, `Missing`, and `Required adaptation` with concrete details. It MUST end with the exact lines `Max severity: ...` and `Ship allowed: yes` or `Ship allowed: no` — /ztp-ship greps that line, and without it the ship stays blocked. A single critical = no. An incomplete review is never a pass.
 
 ### Step 3 — Gate (fail-closed)
-- Verdict with a CRITICAL → Ship blocked. End with: "Ship blocked (critical). Fix via /itp-execute <id> (fix mode), then rerun /itp-review <id>."
-- Otherwise → End with: "Review passed. Next step: /itp-ship <id>"
+- Verdict with a CRITICAL → Ship blocked. End with: "Ship blocked (critical). Fix via /ztp-execute <id> (fix mode), then rerun /ztp-review <id>."
+- Otherwise → End with: "Review passed. Next step: /ztp-ship <id>"

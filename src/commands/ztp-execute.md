@@ -7,7 +7,7 @@ allowed-tools:
   - Agent
   - Bash
 ---
-# itp-execute — Delegated implementation
+# ztp-execute — Delegated implementation
 
 Target story: $ARGUMENTS
 
@@ -25,11 +25,11 @@ If you can't invoke the Agent tool, stop and report the error. Don't improvise.
 
 ### Step 1 — Prerequisites (fail-closed)
 1. Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against docs/stories.md. No unambiguous match → list the available stories, STOP.
-2. Resolve `<repository-base>/.worktrees/<id>` and verify its branch is exactly `feature/<id>`. Missing worktree, wrong branch, detached HEAD or the repository base directory itself → STOP and run `/itp-research <id>` to bootstrap the feature workspace. Never improvise another branch or path.
-3. From that worktree, read docs/plans/<id>.md. If it doesn't exist, STOP: ask for /itp-plan <id> first. Go no further.
-4. Check the plan's frontmatter: it must contain `validated: yes`. Otherwise STOP: "Plan not validated. Review it, then rerun /itp-plan <id> to validate."
+2. Resolve `<repository-base>/.worktrees/<id>` and verify its branch is exactly `feature/<id>`. Missing worktree, wrong branch, detached HEAD or the repository base directory itself → STOP and run `/ztp-research <id>` to bootstrap the feature workspace. Never improvise another branch or path.
+3. From that worktree, read docs/plans/<id>.md. If it doesn't exist, STOP: ask for /ztp-plan <id> first. Go no further.
+4. Check the plan's frontmatter: it must contain `validated: yes`. Otherwise STOP: "Plan not validated. Review it, then rerun /ztp-plan <id> to validate."
 5. Read docs/reviews/<id>.md from the worktree if it exists. If it contains `Ship allowed: no`, this is a FIX run: the review findings come first.
-6. Read AGENTS.local.md: the project commands (`Test`, `Typecheck`, `E2E`, `Build`), `Test budget`, and the stages (`Full suite`, `E2E stage`, `Build stage`). Missing file → STOP: "No project settings. Run /itp-setup." A command left at `—` is one the implementer must not invent: pass it along as unavailable.
+6. Read AGENTS.local.md: the project commands (`Test`, `Typecheck`, `E2E`, `Build`), `Test budget`, and the stages (`Full suite`, `E2E stage`, `Build stage`). Missing file → STOP: "No project settings. Run /ztp-setup." A command left at `—` is one the implementer must not invent: pass it along as unavailable.
 
 ### Step 2 — Delegate
 Invoke the Agent tool:
@@ -43,4 +43,4 @@ Wait for the agent to finish. Capture its summary.
 ### Step 3 — Report
 Summarize: tasks done, files touched, tests added, what the verification record says (commands, exit codes, tree), and any blocker the agent reported. No line-by-line detail.
 
-End with: "Implementation done. Next step: /itp-review <id>"
+End with: "Implementation done. Next step: /ztp-review <id>"

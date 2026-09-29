@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-# idea-to-prod — installed via core.hooksPath. Blocks code commits without a validated plan.
+# zero-to-prod — installed via core.hooksPath. Blocks code commits without a validated plan.
 set -euo pipefail
-exec "$(dirname "$0")/itp-gate.sh" pre-commit
+exec "$(dirname "$0")/ztp-gate.sh" pre-commit

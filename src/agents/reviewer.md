@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Anti-hallucination review of the implementer's work, fresh context, read-only. Invoked by /itp-review.
+description: Anti-hallucination review of the implementer's work, fresh context, read-only. Invoked by /ztp-review.
 tools: Read, Grep, Glob, Bash, Edit
 model: inherit
 skills:
