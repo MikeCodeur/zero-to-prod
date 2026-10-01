@@ -66,7 +66,9 @@ the same ship. Nothing is relaxed: dedicated worktree, validated plan, neutraliz
 
 Utilities: `/ztp-orchestrator` (the whole cycle, with the two human checkpoints),
 `/ztp-status` (state derived from the files), `/ztp-help`,
-`/ztp-test-prune` (an existing end-to-end suite pruned to the doctrine, on demand).
+`/ztp-chore` (work that changes no product behavior: a short validated plan, the implementer,
+a verification sized to what changes, no review), `/ztp-test-prune` (a chore that prunes an
+existing end-to-end suite to the doctrine).
 
 **Run the commands. Never hand-roll the agent call.** They carry what the pipeline has
 learned — fix mode, the subagent definitions, the gates. A briefing written by hand replaces
@@ -81,14 +83,15 @@ read the story, never which gates it passes.**
 
 ## Where work happens
 
-Two modes, and **a complexity score never chooses the directory** — it only chooses the track:
+Three modes, and **a complexity score never chooses the directory** — it only chooses the track:
 
 | Mode | Working directory | Branch |
 | --- | --- | --- |
 | Explicit Quick Fix | Repository base directory | `Target branch`; another branch checked out → stop and ask |
 | Feature / story | Dedicated `.worktrees/<story-id>/` worktree | Exact `feature/<story-id>` |
+| Chore (`/ztp-chore`) — no product behavior changes: docs, content, tests, tooling | Dedicated `.worktrees/<id>/` worktree | Exact `chore/<id>` |
 
-Every change not explicitly announced and eligible as a Quick Fix is a feature, and a feature
+Every change not explicitly announced and eligible as a Quick Fix, and not a chore, is a feature, and a feature
 stays in its worktree from the first phase to the last, whatever its complexity. Never create
 or check out a feature branch in the repository base directory.
 

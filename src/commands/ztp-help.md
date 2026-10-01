@@ -44,5 +44,8 @@ Routine cycle → orchestrator; need to steer or inspect a phase → individual 
 
 Where the project stands (progress per story, next command): /ztp-status
 
+Work that changes no product behavior (docs, content, tests, tooling): /ztp-chore <request> —
+validated mini-plan, implementer, targeted verification, no review. One request = one chore.
+
 End-to-end suite grown slow or brittle: /ztp-test-prune — audits each spec (keep, rewrite,
 delete), you validate the list, then it prunes in its own worktree.
