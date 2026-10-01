@@ -33,6 +33,9 @@ Never ask what the code states. Look for the package manager or build system (lo
 files, an Xcode project, a `Makefile`…) and the commands the project actually declares (its
 manifest scripts, task runner, build targets).
 Note the default branch (`git symbolic-ref refs/remotes/origin/HEAD`, else the current branch).
+For the `Sandbox` settings: the configuration values that hold the product's own address (a web
+app's URLs and trusted origins, a mobile app's API base URL), the schema and migration
+directories, and a declared reset-and-seed script. Not found → `—`.
 Anything you find becomes the pre-filled answer, not a question.
 
 ### Step 2 — Ask the four questions (AskUserQuestion)
@@ -56,7 +59,8 @@ validates plans by hand confirms its ships by hand.
 
 ### Step 3 — Write it
 Write `AGENTS.local.md` from @templates/agents-local.md, filled with the answers and the
-defaults. Keep its shape exactly: one setting per line, `Name: value`, **no trailing comment** —
+defaults. A setting whose accepted values do not include `—` never gets one: nobody asked
+about it → it keeps the template's default. Keep its shape exactly: one setting per line, `Name: value`, **no trailing comment** —
 the commands read the value as everything after the colon, so a comment on the line becomes part
 of the value. The accepted values stay in the table below the block. Leave "Project profile" and "Project conventions"
 as their placeholders — `/ztp-architect` fills them from the codebase, existing or just built.

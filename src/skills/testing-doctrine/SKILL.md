@@ -27,7 +27,32 @@ is not a browser.
 | Persistence | Only what no reading catches: the idempotency ordering of a retryable mutation, and the tenant/ownership clause of each query. Call the repository **directly** — the service refuses upstream, so an applicative call never reaches the guard. |
 | Adapter (HTTP route, controller, CLI command, message handler, screen action) | Only what the service does not do: payload parsing, field clearing, status mapping. **An adapter never re-tests an access refusal** — it verifies once that a refusal becomes the adapter's refusal response (a 403, an error code, a message), never per role and never per rule. |
 | Component / view | Almost none. Only genuine conditional logic of its own; rendering a list is not a rule. |
-| End-to-end | One scenario, for what unit tests structurally cannot see — typically a side effect written inside a transaction, which mocked repositories hide. |
+| End-to-end | One scenario, for what unit tests structurally cannot see — typically a side effect written inside a transaction, which mocked repositories hide. The rules below. |
+
+**End-to-end, specifically**
+
+An end-to-end run costs a cold start, a migration, a seed and a browser, device or platform
+driver, and the suite is replayed by every story after this one. Measured on a real web
+project: 86 specs, 216 tests, seven minutes a run, and most of the reds were specs repaired
+for a wording change rather than a broken feature. The rules hold whatever the `E2E tool`; the
+examples are a web app's — find the equivalent for yours.
+
+- **One spec per story, one scenario in it** — none when no unit test is structurally blind
+  to what the story does.
+- **It asserts an effect**, observed from outside as a user or a caller would: on the web a
+  URL reached, a row persisted and read back, a real HTTP status; on mobile or desktop a screen
+  reached and a record still there after relaunch; for a CLI or a binary an exit code, an
+  output, a file written. **A label, a heading or a button merely being visible is not an
+  end-to-end assertion** — if the screen must be looked at, look at it with `UI check` and
+  record it.
+- **No matrix.** Locales × themes × viewports, devices × OS versions, every route or screen in
+  a loop, every role: each one belongs to the layer that owns it (policy test, i18n check,
+  visual check), or nowhere. Written inside one test, it still counts as what it replays.
+- **Select on a stable identifier, never on copy that can change**: an accessible role or a
+  `data-testid` on the web, a `testID` or accessibility identifier on mobile, an automation id
+  on desktop. A wording change must not break a spec.
+- **A story does not edit another story's spec**, unless its own change legitimately breaks
+  it — and then the verification record says which, and why.
 
 **Four cuts, each measured in real use**
 
@@ -73,7 +98,7 @@ setting in `AGENTS.local.md`.
 | Focused suite | after each task — the working loop. Target the task's own test files, never the whole project | — |
 | Full suite | **once**, after the last task | `Full suite` |
 | Type check | **once at the very end, after the last edit, and not optional** — most runners transpile without checking types and most linters do not type, so a type error in a test file passes lint, passes the suite, and fails CI | — |
-| End-to-end | **once, at ship, just before the merge** — never in the loop, never twice: a run costs a cold start, a migration, a seed and a browser, device or platform driver | `E2E stage` · `E2E scope` · `E2E targets` |
+| End-to-end | **once, at ship, just before the merge** — never in the loop, never twice: a run costs a cold start, a migration, a seed and a browser, device or platform driver. At ship it is the story's own specs plus `E2E smoke`; the whole suite belongs to CI | `E2E stage` · `E2E scope` · `E2E smoke` · `E2E targets` |
 | Production build | at ship, and **only when a route, a manifest or the packaging configuration moved** — that is the one rupture a type check cannot see. A modern build type-checks on its way, so it is the build or the type check, never both | `Build stage` |
 | Format | never as a repo-wide sweep — format the staged files at commit; a story is one commit | — |
 

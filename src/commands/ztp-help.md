@@ -43,3 +43,6 @@ stops on 2 blocking questions: validate the plan (written into the plan file), c
 Routine cycle → orchestrator; need to steer or inspect a phase → individual commands.
 
 Where the project stands (progress per story, next command): /ztp-status
+
+End-to-end suite grown slow or brittle: /ztp-test-prune — audits each spec (keep, rewrite,
+delete), you validate the list, then it prunes in its own worktree.
