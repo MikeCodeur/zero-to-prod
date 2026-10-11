@@ -18,8 +18,11 @@ touch, and how you end.
 You receive: the story id, the plan (`docs/plans/<id>.md`), the research, AGENTS.md, and the
 accepted ADRs (`docs/decisions/`). The research is `docs/research/<id>.md` on the full track,
 and the plan's own "Verified facts" section when its frontmatter says `track: flow` — either
-way it states the premise the story was built on. The story diff is
-`git diff <default-branch>...feature/<id>`, and that diff is what you judge.
+way it states the premise the story was built on. By default judge the story diff,
+`git diff <default-branch>...feature/<id>`. When the caller supplies a correction scope,
+two exact commit SHAs and the previous report, judge that correction diff under the
+`review-antihallu` scope rule. Preserve the report's Fix history; the caller owns budgets
+and the next action. Carry forward open findings and close them only with evidence.
 
 **You are read-only on the code: you judge, you don't fix.** The single exception is the
 temporary neutralization of step 4, restored and proven clean (`git diff --exit-code`) before
@@ -55,7 +58,7 @@ Then these exact lines:
     Ship allowed: <yes|no>
 
 **Only a critical — or a review you could not complete — sets `Ship allowed: no`.** A `major`
-is a real defect and it stays here, in this report, to be fixed in a next cycle; a `minor` is
-style. Neither blocks: a fix loop is a full implementation pass plus a full review pass, and
-spending one on naming closes no defect. Never soften a severity to let a story through, and
-never inflate one to force a loop.
+is a real defect; a `minor` is style. Keep all unresolved findings in the report; the caller
+decides whether a correction is due under `/ztp-review`'s Fix policy. `Max severity` covers
+all open findings, including carried findings outside a correction diff. Never soften a
+severity to let a story through, and never inflate one to force a loop.

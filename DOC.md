@@ -33,7 +33,7 @@ After changing the workflow, build both targets with `bin/ztp-build.mjs` and tes
 
 ## Settings — `AGENTS.local.md`
 
-**A rule that applies everywhere lives in `AGENTS.md`. A value that varies lives in `AGENTS.local.md`**, in the project, created once by `/ztp-setup` and never overwritten by the installer. Every pipeline command reads its settings there; none of them defaults a missing one — a value of `—` means the project does not have that thing, and the agent says so rather than substituting one.
+**A rule that applies everywhere lives in `AGENTS.md`. A value that varies lives in `AGENTS.local.md`**, in the project, created once by `/ztp-setup` and never overwritten by the installer. Every pipeline command reads its settings there; only explicitly documented compatibility defaults apply to missing settings. A value of `—` means the project does not have that thing where accepted; otherwise it is invalid.
 
 Format: one setting per line, `Name: value`, no trailing comment. The value is everything after the colon, trimmed.
 
@@ -48,6 +48,9 @@ Format: one setting per line, `Name: value`, no trailing comment. The value is e
 | `Design source` | `internal` (the agent draws, via `Design skill`) · `external` (a brief goes to `Design tool`) |
 | `Design skill` / `Design tool` | which one, when there is one. `—` is valid: the agent draws it itself |
 | `Test budget` | tests per story; a plan wanting more says why |
+| `Fix level` | `critical` (default when absent) · `major` (also correct majors before Ship) |
+| `Critical fix loops` | maximum critical-triggered correction/review attempts per story, non-negative integer; absent → `2`. `0` stops at the first blocking review |
+| `Major fix loops` | maximum major-triggered correction/review attempts per story with `Fix level: major`, non-negative integer; absent → `1`. `0` disables these attempts |
 | `Verification mode` | `record` (the implementer records what it ran, the reviewer checks the record) · `rerun` (the reviewer runs everything itself) |
 | `Full suite` | when the whole unit suite runs: `execute-end` · `ship` · `both` |
 | `E2E stage` | when the end-to-end suite runs: `execute-end` · `ship` · `ci` · `—` |
@@ -117,7 +120,7 @@ A mockup is rendered and looked at — in the target environment, in every theme
 
 **/ztp-plan** — breaks the story into ordered tasks, each small and verifiable, based on the research. Anticipates touched files and the test strategy, and carries the run's interdicts — what must not change, verifiable by the reviewer. Capped at ~250 lines. Never produces code. The plan is validated before execution, and `validated: yes` in its frontmatter is what execute checks.
 
-**/ztp-execute** — delegates to the `implementer` subagent on the story's worktree. Task by task: the task written as a whole block, its **focused** suite run on that task's own test files, its checkbox ticked. No red-first ceremony, no invariant mutations, a test budget of `Test budget`. After the last task: the full suite once, the type check once. **Not the end-to-end suite, not the production build** — those run at ship. Any task that ships a screen gets opened in its target environment. Then, before the single story commit, it writes `docs/verif/<id>.md`. Fail-closed: no plan, or a plan without `validated: yes`, no execution. The main context has neither Write, nor Edit, nor Bash. If a previous review blocked the story, it runs in **fix mode**: the findings come first.
+**/ztp-execute** — delegates to the `implementer` subagent on the story's worktree. Task by task: the task written as a whole block, its **focused** suite run on that task's own test files, its checkbox ticked. No red-first ceremony, no invariant mutations, a test budget of `Test budget`. After the last task: the full suite once, the type check once. **Not the end-to-end suite, not the production build** — those run at ship. Any task that ships a screen gets opened in its target environment. Then, before the single story commit, it writes `docs/verif/<id>.md`. Fail-closed: no plan, or a plan without `validated: yes`, no execution. The main context writes only correction bookkeeping in the review report, never source code. When the shared Fix policy requests a correction, it reserves an attempt and delegates in **fix mode**: the findings come first.
 
 **/ztp-review** — delegates to the `reviewer` subagent: fresh context, read-only. It starts at the verification record and checks it mechanically (`ztp-gate verif-current <id>`): a record whose tree matches the commit proves the suite and the type check for this exact code, and they are not re-run. Missing, stale, or a non-zero exit code and the reviewer runs them itself. It then judges the story diff (`git diff <default-branch>...feature/<id>`), verifies every API and import in it actually exists, and proves the tests bite by neutralizing the line the story turns on — **running only the test files that name that invariant** — and counting the reds. A guard nothing turns red on is untested, whatever the suite total says. The mutation is temporary and restored before the report is written; it is the single exception to read-only. Each issue classified critical / major / minor. The report ends with `Max severity:` and `Ship allowed:`.
 
@@ -175,7 +178,7 @@ Everything the pipeline produces is markdown under `docs/`, versioned by git. No
 | Tasks + progress | checkboxes inside `docs/plans/<id>.md`, ticked as each task lands |
 | Decisions | `docs/decisions/NNN-<slug>.md` — MADR-style ADRs: context, options rejected and why, consequences. Immutable, superseded not edited |
 | Design | `docs/design-system.md` (global) ; `docs/designs/<id>/` per story — the mockup is a reference, never production code |
-| Pipeline state | derived — file existence + `Ship allowed:` verdict + git. Never stored, so never stale |
+| Pipeline state | derived from files, verdict, correction history, current settings and git; `Fix action` in a report is recomputed before acting |
 
 Lifecycle: framing docs are committed on the default branch at the end of their phase. Story docs travel with the story on `feature/<id>`. **One commit per story, not one per task** — the implementer's single commit carries the research, the design, the plan with its ticked checkboxes, the verification record and the code of every task; `/ztp-ship` commits the review. The plan file is the live progress tracker, never a commit trigger. Branch commits are squashed at merge, so the default branch gets one commit per story. Every PR therefore carries its own research, design, plan, verification and review: the audit trail is the PR itself.
 
@@ -227,7 +230,26 @@ Three mechanical, file-based gates. None of them is a judgment call — each is 
 
 `src/hooks/ztp-gate.sh` implements all three (`plan-validated`, `verif-current`, `ship-allowed`, plus `pre-commit`).
 
-**Only a critical blocks the ship.** A `major` is a real defect — traced in the report, fixed in a next cycle. A `minor` is style. Neither reopens a fix loop: a loop is a full implementation pass plus a full review pass, and spending one on naming costs half a story and closes no defect. Two loops at most, and only for a critical or a review that could not complete.
+**A critical always blocks the ship.** `/ztp-review` owns the correction policy, shared by
+manual commands, Flow and Orchestrator. `Fix level: critical` preserves the existing behavior;
+`major` also requests correction for majors. `Critical fix loops` and `Major fix loops` cap
+attempts separately (defaults `2` and `1`); the initial implementation/review consumes none.
+With the defaults, `critical` permits at most two correction/review turns; opting into `major`
+permits at most three in total, charged by the trigger. Mixed findings use the critical budget
+first, and the implementer still receives every finding.
+
+Each attempt is recorded before delegation in the existing review report, with its trigger,
+commit boundaries and outcome; resuming a session never resets the count. A major-triggered
+review judges only the correction diff and its regressions, preserving unresolved earlier
+findings. Critical-triggered reviews retain the full story scope. Exhausted critical budget
+means stop and hand back the blocker; exhausted major budget means proceed to normal Ship
+gates with residual majors traced. Minors alone never reopen a loop. The reviewer keeps the
+same severity scale and verdict; `/ztp-ship` also checks that no correction/review is pending.
+
+For slow or costly runs, the agent diagnoses available evidence, shows all supported cost
+controls with current/options/trade-offs, including attempts used/allowed, and recommends the
+adjustment that addresses the measured cause. Estimates and missing evidence stay explicit;
+agreed settings changes belong in `AGENTS.local.md`.
 
 A plan file that merely exists is not a validated plan. An absent verification record is never a pass.
 

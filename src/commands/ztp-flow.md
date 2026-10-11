@@ -37,7 +37,8 @@ You are FORBIDDEN from:
 
 1. `AGENTS.local.md` exists? Missing → STOP: "This project has no settings. Run /ztp-setup."
    Read `Story track`, `Flow threshold`, `Plan validation`, `Merge mode`, `Ship confirmation`,
-   the project commands and the stages from it.
+   the project commands and the stages from it. Read the correction settings and defaults
+   through `/ztp-review`, "Fix policy"; the same contract governs every retry below.
 2. `docs/prd.md`, `docs/stories.md` and `docs/architecture.md` exist? Any missing → STOP and
    point at the phase that produces it. This track drives one story; it never replaces framing.
 3. Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against `docs/stories.md`. No
@@ -104,38 +105,21 @@ Write no code in this phase.
 
 ## Phase 3 — Execute (delegated)
 
-Fail-closed: `docs/plans/<id>.md` must carry `validated: yes`. Then invoke the Agent tool:
-- subagent_type: implementer
-- description: Implement story <id>
-- working directory: the absolute worktree verified in Phase 1.
-- prompt: Implement story <id> from docs/plans/<id>.md. Your agent definition is your
-  contract — this prompt carries only what is specific to this run. This is a `flow` plan:
-  its "Verified facts" section is the research, read it first. The worktree and branch are
-  prepared and verified: do not create a worktree, switch branches, checkout, or stash.
-- On a FIX run, add: This story was blocked in review. docs/reviews/<id>.md is your fix list.
-
-Wait for it to finish. Capture its summary.
+Run `/ztp-execute`'s contract in the absolute worktree verified in Phase 1: validated plan,
+same implementer, and the plan's "Verified facts" as research. On a correction, apply
+`/ztp-review`, "Fix policy", and reserve exactly one attempt before delegating. On resume,
+`review` goes straight to Phase 4, `none` to Phase 5, and `stop` stops; never replay the
+initial implementation or reset history. Capture the implementer's summary and blockers.
 
 ## Phase 4 — Review (delegated, fresh context)
 
-Invoke the Agent tool:
-- subagent_type: reviewer
-- description: Anti-hallucination review of story <id>
-- working directory: the same absolute worktree.
-- prompt: Review story <id>. Your agent definition and the preloaded `review-antihallu` skill
-  are your contract. Judge `git diff <default-branch>...feature/<id>`, and only that diff.
-  This is a `flow` plan: its "Verified facts" section is the research, and a diff
-  contradicting one is a finding. Fill the checklist from templates/review-checklist.md and
-  end with the exact `Max severity:` and `Ship allowed:` lines.
+Run `/ztp-review`'s complete contract in the same worktree: fresh reviewer, scope selected
+by the correction trigger, preserved history/findings and fail-closed failure reporting.
+It owns the budget decision; do not substitute a local retry counter or a fixed limit.
 
-Write the full report to `docs/reviews/<id>.md`. A missing or malformed verdict is itself a
-blocked review: write that failure with `Max severity: critical` and `Ship allowed: no`, and
-do not infer a severity.
-
-**Gate.** `Ship allowed: no` → back to Phase 3 in fix mode, per AGENTS.md, "Gate": only a
-critical, or a review that could not complete, reopens a loop, and never more than two. Still
-blocked after two → stop, report every open finding, and say plainly that a story needing more
-than two loops on this track was mis-tracked.
+**Gate.** Follow its `Fix action`: `critical` or `major` → Phase 3 in fix mode; `review` →
+finish the pending review; `none` → Phase 5; `stop` → stop with open findings and used/allowed
+counts. Exhausting a budget does not authorize Ship over a critical or an incomplete review.
 
 ## Phase 5 — Ship
 

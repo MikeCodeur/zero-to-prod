@@ -1,9 +1,23 @@
 # Review — Story <id>
 
 > Fresh-context review. Each issue classified: critical / major / minor.
-> Diff reviewed: `git diff <default-branch>...feature/<id>`
+> Diff reviewed: <exact command and commit range; story diff or correction diff supplied by the caller>
 
 Review status: <complete | blocked>
+Reviewed head: <commit SHA>
+Review scope: <story | correction>
+
+## Fix history
+
+<Preserve previous rows and findings on every rewrite. Follow /ztp-review, "Fix policy".
+Initial review: an empty table, not a correction attempt. Counts derive from the rows.>
+
+| Attempt | Trigger | Before | After | Status | Duration / evidence |
+| --- | --- | --- | --- | --- | --- |
+
+Critical fixes used: <count> / <current limit>
+Major fixes used: <count> / <current limit>
+Fix action: <none | critical | major | review | stop>
 
 If blocked, do not leave this implicit:
 
@@ -45,7 +59,8 @@ If blocked, do not leave this implicit:
 - [ ] No impact on existing code paths
 
 ## Findings
-<one line per issue: severity — file — what's wrong>
+<one line per issue: stable id — severity — file — what's wrong — open/closed, with closure evidence.
+Carry forward every open finding, even outside the correction diff; Max severity covers all open findings.>
 
 ## Not verified
 <what this review could NOT check, and why: no browser, no database, no real third-party call.

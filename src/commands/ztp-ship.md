@@ -19,6 +19,13 @@ the repository base directory.
 Run: `grep -q '^Ship allowed: yes' docs/reviews/<id>.md`
 If the file is missing or the command fails, STOP immediately: "Ship blocked — review missing or negative. Run /ztp-review <id>." Nothing below runs without a passing gate.
 
+Also apply `/ztp-review`, "Fix policy", read-only with the current settings and report:
+only action `none` may proceed. A major verdict can allow Ship while correction is still due;
+`critical`/`major` → /ztp-execute, `review` → /ztp-review, `stop` → report the blocker.
+When `Reviewed head` is present, verify it exists and code still matches it (including
+uncommitted or untracked code, excluding `docs/`); otherwise require a new review. Never clear a pending
+attempt or its history here. This policy check supplements the mechanical verdict gate.
+
 Then proceed:
 1. Read `Merge mode`, `Target branch`, `Ship confirmation`, the stages (`Full suite`, `E2E stage`, `E2E scope`, `E2E smoke`, `Build stage`) and the project commands (including `Deploy`, `Smoke test`, `Rollback`) from AGENTS.local.md, and read docs/deployment.md. Missing file or missing setting → STOP: "No project settings. Run /ztp-setup." Never assume a mode — every step below branches on them.
 2. Without switching branches, commit docs/reviews/<id>.md on the already verified feature branch if not already committed (the PR must carry its review). Then run the **exit gate — the one place the expensive checks run in the whole cycle**, per the stages in AGENTS.local.md, using the project's own commands quoted verbatim:

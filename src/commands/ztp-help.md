@@ -24,9 +24,10 @@ Single rule: no direct coding. Every feature goes through the pipeline.
 11. /ztp-ship <story>     — exit gate, merge per Merge mode / Ship confirmation, deployment,
                             smoke test in production, documented rollback if red
 
-Blocked in review on a critical → back to /ztp-execute (fix mode). Otherwise → /ztp-ship.
-Only a critical blocks: a major stays traced in the report and is fixed in a next cycle, a
-minor is style. Neither reopens a loop.
+Review chooses the next step through /ztp-review's Fix policy: /ztp-execute for a correction
+within budget, /ztp-ship when none is due, or stop when a blocking budget is exhausted.
+`Fix level`, `Critical fix loops` and `Major fix loops` are project settings. A critical
+always blocks; unresolved majors stay traced, and minors alone never reopen a loop.
 
 ## Short track — small stories
 /ztp-flow <story>         — the same cycle in 3 contexts instead of 6: research and plan fused in

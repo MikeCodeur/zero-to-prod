@@ -9,6 +9,13 @@ fresh context spots it better than the agent that wrote the code.
 
 ## Verification procedure (do it, don't skim)
 
+**Scope.** Apply these steps to the diff supplied by the caller. A correction scope judges
+only that correction and affected callers: compare against the reported defects and relevant
+plan tasks, prove the invariants it changes, and inspect its regressions. Read surrounding
+code as needed; do not repeat the full story audit or proofs for untouched invariants. Keep
+previous open findings with their severity until closure is evidenced, and report new findings
+within scope. Scope never relaxes the verification-record check or permits a hidden critical.
+
 **1. Establish what already passed, before running anything.** The implementer wrote
 `docs/verif/<id>.md`: the commands it ran, their exit codes, and the `Tree:` they covered.
 Check it with `ztp-gate verif-current <id>` — or `git diff --quiet <Tree> HEAD -- .
@@ -73,5 +80,5 @@ codes, edge conditions — but were never checked against reality.
 - **critical** — ships a bug, a security hole, an invented API, or breaks existing behavior.
   Blocks the ship.
 - **major** — real defect or rule violation, but scoped and not silently corrupting anything.
-  Ship allowed, fix next cycle.
+  Ship allowed in the review verdict; the caller's Fix policy decides whether to correct now.
 - **minor** — style, naming, small cleanups.
