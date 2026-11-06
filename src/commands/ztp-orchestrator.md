@@ -18,7 +18,7 @@ You conduct the cycle; you never do a phase's work inline when a subagent owns i
 
 ## Phase 0 — Prerequisites (fail-closed)
 The orchestrator drives one story's cycle — it never replaces the framing. Check, in order:
-0. AGENTS.local.md exists? Missing → STOP: "This project has no settings. Run /ztp-setup." Read `Story track`, `Flow threshold`, `Plan validation`, `Design source`, `Merge mode`, `Ship confirmation`, the stages and the project commands from it: every checkpoint below is governed by them.
+0. AGENTS.local.md exists? Missing → STOP: "This project has no settings. Run /ztp-setup." Read `Story track`, `Flow threshold`, `Plan validation`, `Design source`, `Merge mode`, `Ship confirmation`, the stages and the project commands from it: every checkpoint below is governed by them. Read correction settings and defaults through `/ztp-review`, "Fix policy".
 1. docs/prd.md exists? Missing → STOP: "No PRD — the pipeline starts with /ztp-prd <idea>. Nothing to orchestrate yet."
 2. docs/stories.md exists? Missing → STOP: "No stories — run /ztp-stories first."
 3. docs/architecture.md exists? Missing → STOP: "No architecture — run /ztp-architect first."
@@ -53,19 +53,19 @@ CHECKPOINT — per `Plan validation`. If the plan's frontmatter already says `va
 ## Phase 4 — Execute
 Fail-closed: docs/plans/<id>.md must carry `validated: yes` — missing means back to the Phase 3
 checkpoint. Then delegate to the `implementer` subagent **exactly as /ztp-execute does**, with
-the verified absolute worktree as its working directory, in fix mode first if a blocking review
-exists. Its definition is its contract; do not restate it. Capture its summary.
+the verified absolute worktree as its working directory. Its prerequisites and correction
+bookkeeping apply in full, including the shared Fix policy and reservation of one attempt.
+On resume, `review` goes to Phase 5, `none` to Phase 6, and `stop` stops; never replay the
+initial implementation or reset history. Its definition is its contract; capture its summary.
 
 ## Phase 5 — Review
-Delegate to the `reviewer` subagent **exactly as /ztp-review does**: fresh context, the story
-diff, its own definition and preloaded skill as its contract. Write the report to
-docs/reviews/<id>.md. A missing or malformed verdict is itself a blocked review: write that
-failure with `Max severity: critical` and `Ship allowed: no`, and do not infer a severity.
+Run `/ztp-review`'s complete contract: fresh reviewer, scope selected by the correction
+trigger, preserved history/findings and fail-closed failure reporting. It owns the budget
+decision; do not substitute a local retry counter or a fixed limit.
 
-Gate: `Ship allowed: no` → back to Phase 4 in fix mode, per AGENTS.md, "Gate" — only a
-critical, or a review that could not complete, reopens a loop, and never more than two. Each
-loop receives the complete latest report. Still blocked after two → stop and report every open
-finding. Never soften a verdict to move on.
+Gate: follow its `Fix action` — `critical` or `major` → Phase 4 in fix mode; `review` →
+finish the pending review; `none` → Phase 6; `stop` → stop with open findings and used/allowed
+counts. Never soften a verdict or raise a budget to move on.
 
 ## Phase 6 — Ship
 CHECKPOINT — per `Ship confirmation`. `human`: show the verdict and ask via AskUserQuestion: "Ship now?" — options: Ship / Not now; only an explicit Ship proceeds. `automatic`: proceed. Then run /ztp-ship's flow: mechanical gate (`grep -q '^Ship allowed: yes' docs/reviews/<id>.md`), then its exit gate — the cycle's only end-to-end and production-build run, per `E2E stage` and `Build stage` — then `Merge mode` — `pr`: push and open the PR (stopping there unless confirmation is `automatic`); `local`: squash into the target branch. After a proven merge: the deployment and the smoke test per docs/deployment.md, the rollback on a red smoke test. Clean up only once the merge is proven and the smoke test is green.

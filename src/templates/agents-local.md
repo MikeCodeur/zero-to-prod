@@ -25,6 +25,9 @@ Design source:     internal
 Design skill:      —
 Design tool:       —
 Test budget:       25
+Fix level:         critical
+Critical fix loops: 2
+Major fix loops:   1
 Verification mode: record
 Full suite:        execute-end
 E2E stage:         ship
@@ -49,6 +52,9 @@ Sandbox reset:     —
 | Story track | `auto` (the story's complexity picks the lane) · `full` (always the six-phase pipeline) · `flow` (always `/ztp-flow`) |
 | Flow threshold | complexity at or below which `auto` picks `/ztp-flow` |
 | Test budget | tests per story — a plan wanting more says why |
+| Fix level | `critical` (only blocking reviews trigger correction) · `major` (also correct majors); absent → `critical` |
+| Critical fix loops | non-negative integer, maximum correction/review attempts triggered by a critical or blocked review per story; absent → `2`. `0` stops at the first blocking review |
+| Major fix loops | non-negative integer, maximum correction/review attempts triggered by majors per story with `Fix level: major`; absent → `1`. `0` leaves majors in the report and proceeds to Ship |
 | Verification mode | `record` (the implementer records what it ran; the reviewer checks the record instead of re-running) · `rerun` (the reviewer runs everything itself) |
 | Full suite | when the whole unit suite runs: `execute-end` · `ship` · `both` |
 | E2E stage | when the end-to-end suite runs: `execute-end` · `ship` · `ci` · `—` |

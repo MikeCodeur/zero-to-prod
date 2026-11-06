@@ -14,10 +14,27 @@ it does not name: no browser test on a product without a browser, no screen open
 `UI check` is `—`.
 
 **A rule here applies to every project. A value that varies is read from `AGENTS.local.md`** —
-never decided by the agent, never defaulted when missing. Read it there, not in the prose
-above it: one setting per line, `Name: value`, the value being everything after the colon,
+never decided by the agent; only an explicitly documented compatibility default applies when
+missing. Read it there, not in the prose above it: one setting per line, `Name: value`, the value being everything after the colon,
 trimmed. A value of `—` means the project does not have that thing; say so rather than
 substituting one.
+
+## When the workflow takes too long or costs too much
+
+Inspect the available session/tool logs, reviews, verification records and `AGENTS.local.md`.
+Attribute measured time or cost to correction loops, repeated checks, end-to-end scope,
+infrastructure or waiting; distinguish facts from hypotheses and name missing evidence.
+Present **all supported cost controls**, including those worth keeping, in a compact table:
+setting or budget, current value, available values, expected saving, and coverage or quality
+trade-off. Use the installed method's documented settings and accepted values; label estimates
+and unknowns rather than inventing timings, savings or knobs. Recommend the adjustment that
+addresses the observed cause and explain why; prioritize removing redundant work. A defect or
+runtime failure may need a fix instead of a lower budget. Include `Fix level`, `Critical fix loops`
+and `Major fix loops`, with attempts used/allowed, triggers and measured duration when available.
+Offer the choices together — change A, B, C, or keep the settings — with a clear recommendation.
+Apply agreed changes in
+`AGENTS.local.md`, respecting authorization already given; a complaint alone authorizes analysis
+and proposals. Track eligibility, severity definitions and mandatory gates still apply.
 
 ## Absolute rule
 No direct coding. Every feature goes through the zero-to-prod pipeline, in order:
@@ -124,14 +141,13 @@ there, with its `file:line`.
 ## Story ids and branches
 - Every story has an id: `s<number>-<short-slug>` (e.g. `s01-submit-testimonial`). It is assigned in docs/stories.md and reused verbatim everywhere: `docs/research/<id>.md`, `docs/plans/<id>.md`, `docs/reviews/<id>.md`, branch `feature/<id>`.
 - All work on a story happens on `feature/<id>`, branched from the default branch. Never commit story work to the default branch.
-- The story diff = `git diff <default-branch>...feature/<id>`. That is what the review judges.
+- The story diff = `git diff <default-branch>...feature/<id>`. Review judges it, except for a correction review explicitly scoped by `/ztp-review`.
 - A command that receives a fuzzy story name resolves it against docs/stories.md; if there is no unambiguous match, it lists the available stories and stops.
 
 ## Gate (mechanical)
 - The review report `docs/reviews/<id>.md` must end with the exact lines `Max severity: <critical|major|minor|none>` and `Ship allowed: <yes|no>`. A single critical = no.
 - `/ztp-ship` refuses to run unless that file exists and contains the line `Ship allowed: yes`. No file, no line, or `no` → ship blocked. No exceptions.
-- **Only a critical blocks.** A `major` is a real defect — traced in the report, fixed in a next cycle; a `minor` is style. Neither reopens a fix loop: a loop is a full implementation pass plus a full review pass, and spending one on naming costs half a story and closes no defect.
-- After a blocked review, `/ztp-execute` runs in fix mode: the review findings are fed to the implementer and fixed before anything else. Two loops at most.
+- **A critical always blocks.** `Fix level`, `Critical fix loops` and `Major fix loops` govern correction attempts; `/ztp-review`, "Fix policy", owns their decision and history contract. A loop is a correction plus its review, excluding the initial implementation/review. Exhausting a budget never clears a critical; residual majors stay in the report. A requested correction must finish its review before Ship.
 - Before the story commit the implementer writes `docs/verif/<id>.md` (@templates/verification-record.md): the commands it ran, their exit codes, and the `Tree:` those runs covered. `ztp-gate verif-current <id>` answers one question mechanically — does that record still describe the committed code, same tree outside `docs/`? With `Verification mode: record` — also what a missing or `—` setting means; only `rerun` replays — the review takes a current record as proof and does not re-run the suite or the type check. Missing, incomplete or stale → the reviewer runs them itself. An absent record is never a pass.
 - A plan executes only if its frontmatter says `validated: yes` — set by the human validation checkpoint (/ztp-plan or the orchestrator), never by the file merely existing. /ztp-execute is fail-closed on it.
 
