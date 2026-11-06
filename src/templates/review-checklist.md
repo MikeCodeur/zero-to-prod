@@ -45,6 +45,7 @@ If blocked, do not leave this implicit:
 
 ## Rules compliance
 - [ ] Repo conventions followed (AGENTS.md)
+- [ ] Approved docs/review-rules.md applied, with rule ids recorded (or absent; proposed rules not applied)
 - [ ] No accepted ADR contradicted (docs/decisions/)
 - [ ] Only the tools the project profile names (`E2E tool`, `UI check`) — none foreign to the target environment
 - [ ] Design system respected — components/tokens from docs/design-system.md, screen matches the intent of docs/designs/<id>/design.md (UI stories)

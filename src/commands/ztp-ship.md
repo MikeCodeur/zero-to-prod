@@ -54,10 +54,19 @@ Then proceed:
 ## Step 5 — Deploy and smoke test (ONLY after a PROVEN merge)
 The merge is proven first, exactly as the Cleanup step's point 1 says. Then production, per docs/deployment.md:
 
+Keep the deployment evidence: the actual deployed revision/release id and deployment UTC
+timestamp. The post-ship observation below needs these, not just the merge timestamp.
+
 1. **Deploy.** Deployment automatic on merge → wait for it and read its status where docs/deployment.md says it is visible. Deployment by command → run `<Deploy>`, quoted verbatim. Manual procedure → state each step and ask the user (AskUserQuestion) to confirm it is done. No docs/deployment.md, or an open point that blocks the deployment → STOP here: "Merged, not deployed — docs/deployment.md is missing or incomplete. Run /ztp-architect to define the deployment." Never improvise a deployment.
 2. **Smoke test.** Run `<Smoke test>`, or the checks listed in docs/deployment.md, against production. Report each check and its result.
 3. **Red smoke test → the story is not shipped.** Apply the rollback from docs/deployment.md (`<Rollback>` or its steps) — `Ship confirmation: human` → ask first (AskUserQuestion: "Roll back production?" — Roll back / Not now); `automatic` → run it. State what the rollback does not undo, as docs/deployment.md lists it. Open the defect in the issue tracker (`Issue tracker`), never in docs/stories.md, and STOP: no cleanup, the worktree stays for the fix.
-4. Green → the Cleanup step.
+4. Green → run `/ztp-ops post-ship <release> <deployed-at>` using that evidence and the
+   work id and successful smoke-test result, then the Cleanup step. Follow its contract,
+   with the report in the repository base's `docs/ops/`
+   so cleanup cannot remove it. No observability → report `not-configured`; failed or early
+   collection → report what is not verified and when to rerun. A threshold breach proposes
+   the documented rollback; it never silently executes it. Include the ops report/status
+   in the ship recap. A missing persistent report destination stops before cleanup.
 
 End a completed ship with: "Story shipped — deployed, smoke test green (<production URL>). Cycle complete. Next story: /ztp-research <story>"
 

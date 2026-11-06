@@ -6,6 +6,7 @@ allowed-tools:
   - Glob
   - Agent
   - Write
+  - Bash
 ---
 # ztp-stories-review — Delegated review of the story breakdown
 
@@ -22,11 +23,18 @@ If you can't invoke the Agent tool, stop and report the error. Don't improvise.
 ### Step 1 — Prerequisites (fail-closed)
 `docs/prd.md` and `docs/stories.md` must both exist. Missing PRD → STOP: "No PRD — run /ztp-prd first." Missing stories → STOP: "No stories — run /ztp-stories first." There is nothing to review otherwise.
 
+Read every intent linked by the stories. Repo intents must be accepted; for tracker pointers,
+fetch the current canonical content with the declared `Intent read` command and
+`ZTP_INTENT_REF` environment value. Bash is limited to that read and the report commit.
+Give the reviewer the complete canonical exports with references, revisions and retrieval
+times. Missing source, draft approval or failed retrieval → a blocked report ending with
+`Max severity: critical` and `Stories ready: no`. Never silently review against the PRD alone.
+
 ### Step 2 — Delegate
 Invoke the Agent tool:
 - subagent_type: stories-reviewer
 - description: Review the story breakdown against the PRD
-- prompt: Review docs/stories.md against docs/prd.md. The stories-review skill is preloaded. Check coverage of the PRD perimeter first (every feature of the "In scope (core loop)" table must be covered by at least one story — a gap is critical), then out-of-scope leaks, technical-layer stories, untestable acceptance criteria, dependency order, complexity scores, id format and overlaps. Fill the checklist from templates/stories-review-checklist.md, classify each issue (critical / major / minor), and end your report with the exact lines "Max severity: <critical|major|minor|none>" and "Stories ready: <yes|no>".
+- prompt: Review docs/stories.md against docs/prd.md and the linked accepted intents (canonical tracker exports supplied with their revisions when applicable). The stories-review skill is preloaded. Check coverage of the approved scope first, then the remaining checklist. Fill templates/stories-review-checklist.md, name the source revisions reviewed, classify each issue (critical / major / minor), and end with the exact lines "Max severity: <critical|major|minor|none>" and "Stories ready: <yes|no>".
 
 Wait for the verdict.
 
@@ -35,6 +43,6 @@ Write the full report to `docs/reviews/stories.md`. It MUST end with the exact l
 
 ### Step 4 — Outcome
 - `Stories ready: no` → End with: "Stories review blocked (<max severity>). Fix docs/stories.md — rerun /ztp-stories or edit it directly — then rerun /ztp-stories-review."
-- `Stories ready: yes` → End with: "Stories review passed. Next step: /ztp-architect"
+- `Stories ready: yes` → Initial framing: next `/ztp-architect`. Appended intent on an already framed product: next `/ztp-status` to select a ready story; do not repeat the framing.
 
 Note: this is a soft gate. It does not block the pipeline mechanically — it is surfaced by /ztp-status and warned about by /ztp-research. Fixing a bad split here costs a markdown edit; fixing it after five shipped stories costs cycles.

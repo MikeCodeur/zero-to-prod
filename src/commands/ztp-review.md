@@ -79,7 +79,7 @@ history even in a failure report. The reviewer reports severity honestly; the ca
 ## Workflow
 
 ### Step 1 — Delegate
-Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against docs/stories.md. Read AGENTS.local.md for the project commands, `Test budget` and the Fix policy above — missing file → STOP: "No project settings. Run /ztp-setup."
+Resolve $ARGUMENTS using AGENTS.md, "Work sources" (story or ticket brief). Read AGENTS.local.md for the project commands, `Test budget` and the Fix policy above — missing file → STOP: "No project settings. Run /ztp-setup."
 Locate `.worktrees/<id>`, verify its branch is exactly `feature/<id>`, and use
 that absolute worktree as the reviewer working directory and report location.
 Missing worktree, wrong branch, detached HEAD or repository base → STOP; never

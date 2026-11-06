@@ -5,7 +5,7 @@ For a web application, a mobile application, an internal tool or an API; for a n
 
 One method = a suite of commands. One principle = no direct coding.
 
-The method in four pages: [METHODE.md](METHODE.md).
+The method: [METHODE.md](METHODE.md).
 
 Small presentation or copy adjustments can use the explicit **Quick Fix**
 exception when the user requests it. The primary agent edits directly, keeps the
@@ -17,6 +17,17 @@ cross-cutting, or uncertain, the normal pipeline remains mandatory. See
 Setup → PRD → User Stories → Stories Review → Architecture (foundation + deployment) → Design System (UI only) → then, per story: Research → Design → Plan → Execute → Review → Ship (deploy + smoke test)
 
 A small story takes the short track instead: **`/ztp-flow`** runs that same cycle in three contexts rather than six — research and plan fused in one pass, then the same implementer, the same fresh-context reviewer, the same gates.
+
+![Preparation and story delivery](src/assets/zero-to-prod-preparation-cycle.png)
+
+Once the product exists: **intent → stories → cycle → ship → ops → next change**.
+Initial framing stays the PRD. A defect goes to a ticket and a corrective cycle, without an
+intent; chore and Quick Fix need none either. `/ztp-ops` reads only declared observability
+commands and saves its findings under `docs/ops/`.
+
+![The production feedback loop](src/assets/zero-to-prod-loop.png)
+
+[Open the explanatory slides](src/assets/slides/index.html) (download/open locally; works offline).
 
 Full method documentation: [DOC.md](DOC.md)
 
@@ -66,11 +77,11 @@ After a global install, drop the per-project files (templates + rules) in each p
     ~/.claude/zero-to-prod/install.sh init                 # Claude
     ~/.claude/zero-to-prod/install.sh init --target codex  # Codex
 
-`AGENTS.md` (the rules) is shared and read natively by both tools; on Claude a one-line `CLAUDE.md` imports it. The 7 skills are the open `SKILL.md` standard, so they carry over unchanged; the 18 `ztp-*` commands are emitted as Codex skills. See the fidelity matrix in [DOC.md](DOC.md).
+`AGENTS.md` (the rules) is shared and read natively by both tools; on Claude a one-line `CLAUDE.md` imports it. The 7 skills are the open `SKILL.md` standard, so they carry over unchanged; the 22 `ztp-*` commands are emitted as Codex skills. See the fidelity matrix in [DOC.md](DOC.md).
 
-When maintaining zero-to-prod itself, edit only `src/AGENTS.md`. The root
-`AGENTS.md` and `CLAUDE.md` are ignored local-install artifacts; `CLAUDE.md`
-must remain a one-line `@AGENTS.md` import. See
+When maintaining zero-to-prod itself, edit the shipped rules in `src/AGENTS.md`. The root
+`AGENTS.md` contains this repository's maintenance instructions and is left intact;
+`CLAUDE.md` remains a one-line `@AGENTS.md` import. See
 [Editing the workflow rules](DOC.md#editing-the-workflow-rules).
 
 ### Repo-level enforcement (git hooks)
@@ -79,11 +90,26 @@ The method's guardrails don't have to depend on a specific tool's permissions. O
 
     ./install.sh --hooks        # (add to any target)
 
-- **pre-commit** — refuses code on a `feature/<id>` branch without a validated plan (`docs/plans/<id>.md` → `validated: yes`). Docs-only commits always pass.
+- **pre-commit** — scans the actual staged blobs with the declared `Secret scan`, rejects `Protected paths`, then applies the unchanged plan gate. Docs-only commits skip the plan gate, not the security guards.
+- **Claude Code only** — `PreToolUse` also protects file edits and rejects declared production commands or merges without the target's approval. Chores retain their validated-plan exception.
+
+`--hooks` requires Python 3.9+ and explicit guard settings. An absent/failing scanner blocks
+commits. Existing Git hooks and Claude settings are preserved. These pattern-based guards
+cover declared commands; they are not a shell sandbox. See [guard configuration](DOC.md#guard-configuration).
 
 The ship gate stays server-side: `/ztp-ship` squash-merges, so a merged story leaves no merge commit a client-side hook could detect. Run `ztp-gate ship-allowed <id>` in CI or branch protection instead.
 
-Reversible: `git config --unset core.hooksPath`. On Claude the harness also enforces "no direct coding" via tool permissions; the hooks make the same guarantees hold on Codex — enforcement lives in the repo, not the tool.
+To undo Git installation, restore the previous path recorded in `.ztp-hooks/.previous-hooks-path`
+(or unset `core.hooksPath` if it was Git's default). Under Claude, remove only the ZTP
+`PreToolUse` entry from `.claude/settings.json`. File gates remain usable under either tool.
+
+### Optional CI and evals
+
+    ./install.sh --target all --ci
+
+Installs `.github/workflows/ztp.yml` and the existing gates without enabling Git hooks or an
+agent job. `CI review` and `CI evals` are off by default; headless runners and model access
+must be declared. Customized workflows are preserved. See [CI setup](DOC.md#optional-ci).
 
 ## Update
 
@@ -135,6 +161,23 @@ What it does — and doesn't:
 
     # an end-to-end suite grown slow or brittle:
     /ztp-test-prune
+
+    # new change on an existing product:
+    /ztp-intent <change>
+    /ztp-stories <intent-id>
+    /ztp-stories-review
+
+    # a defect stays a ticket; existing track rules choose the appropriate cycle:
+    /ztp-flow ticket:<reference>
+
+    # optional observability, including on an existing install:
+    /ztp-setup --observability
+    /ztp-ops last 7 days
+
+    # optional project quality feedback:
+    /ztp-review-learn <PR range or review export>
+    /ztp-eval collect
+    /ztp-eval run
 
 ## Autonomous mode — `/goal`
 

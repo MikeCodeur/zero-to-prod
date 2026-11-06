@@ -1,0 +1,234 @@
+"""Integration checks on disposable repositories, no external service or real credential."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+METHOD = Path(__file__).resolve().parents[2]
+GUARD = METHOD / "src/hooks/ztp-guard.sh"
+
+
+class Repository(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix="ztp-test-")
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.run_command("git", "init", "-q", "-b", "main")
+        self.run_command("git", "config", "user.name", "ZTP Test")
+        self.run_command("git", "config", "user.email", "ztp-test@example.invalid")
+        self.values = {
+            "Secret scan": 'python3 scan.py',
+            "Protected paths": '[]',
+            "Production commands": json.dumps([r"prod-db\b"]),
+            "Merge commands": json.dumps([r"merge-tool (?P<branch>(?:feature|chore)/[\w-]+)"]),
+            "Merge resolve": "—",
+        }
+        self.write_settings()
+        (self.root / "scan.py").write_text(
+            "import os,pathlib,sys\n"
+            "assert 'ZTP_SCAN_DIR' in os.environ\n"
+            "sys.exit(any(b'ZTP_TEST_SECRET' in p.read_bytes() for p in "
+            "pathlib.Path(os.environ['ZTP_SCAN_DIR']).rglob('*') if p.is_file()))\n")
+        (self.root / "file.txt").write_text("clean")
+        self.commit()
+
+    def run_command(self, *args, input=None, expected=0, env=None):
+        result = subprocess.run(args, cwd=self.root, input=input, text=True,
+                                capture_output=True, env={**os.environ, **(env or {})})
+        if expected is not None:
+            self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+        return result
+
+    def write_settings(self):
+        (self.root / "AGENTS.local.md").write_text(
+            "\n".join(k + ": " + v for k, v in self.values.items()) + "\n")
+
+    def commit(self):
+        self.run_command("git", "add", ".")
+        self.run_command("git", "-c", "core.hooksPath=/dev/null", "commit", "-qm", "fixture")
+
+    def hook(self, command="harmless", *, expected=0, tool="Bash", path=None):
+        data = {"command": command} if tool == "Bash" else {"file_path": str(path)}
+        return self.run_command("bash", str(GUARD), "pre-tool-use", expected=expected,
+                                input=json.dumps({"hook_event_name": "PreToolUse", "cwd": str(self.root),
+                                                  "tool_name": tool, "tool_input": data}),
+                                env={"CLAUDE_PROJECT_DIR": str(self.root)})
+
+    def precommit(self, expected=0):
+        return self.run_command("bash", str(GUARD), "pre-commit", expected=expected)
+
+    def install(self, target="all", *flags, expected=0):
+        return self.run_command("bash", str(METHOD / "install.sh"), "--target", target,
+                                *flags, expected=expected)
+
+    def test_index_not_working_copy_is_scanned_and_output_is_redacted(self):
+        file = self.root / "file.txt"
+        file.write_text("ZTP_TEST_SECRET")
+        self.run_command("git", "add", "file.txt")
+        file.write_text("clean again")
+        result = self.precommit(expected=1)
+        self.assertIn("Secret scan failed", result.stderr)
+        self.assertNotIn("ZTP_TEST_SECRET", result.stdout + result.stderr)
+        self.run_command("git", "add", "file.txt")
+        file.write_text("ZTP_TEST_SECRET")
+        self.precommit()
+
+    def test_missing_failed_scanner_and_invalid_config_block(self):
+        for value in ("—", "", "nonexistent-ztp-scanner", "exit 9"):
+            with self.subTest(value=value):
+                self.values["Secret scan"] = value
+                self.write_settings()
+                self.precommit(expected=1)
+        self.values["Protected paths"] = "not json"
+        self.write_settings()
+        self.precommit(expected=1)
+        self.hook(expected=2)
+        (self.root / "AGENTS.local.md").unlink()
+        self.hook(expected=2)
+
+    def test_protected_rename_and_deletion(self):
+        self.values["Protected paths"] = '["file.txt"]'
+        self.write_settings()
+        self.run_command("git", "mv", "file.txt", "renamed.txt")
+        self.precommit(expected=1)
+        self.hook(tool="Write", path=self.root / "file.txt", expected=2)
+
+    def test_symlink_edits_cannot_bypass_protected_target(self):
+        self.values["Protected paths"] = '["file.txt"]'
+        self.write_settings()
+        (self.root / "alias.txt").symlink_to("file.txt")
+        self.hook(tool="Edit", path=self.root / "alias.txt", expected=2)
+
+    def test_staged_names_with_spaces_newlines_and_symlinks(self):
+        (self.root / "space and\nnewline").write_text("ZTP_TEST_SECRET")
+        self.run_command("git", "add", ".")
+        self.precommit(expected=1)
+        (self.root / "space and\nnewline").write_text("safe")
+        (self.root / "outside-link").symlink_to("/outside/never-read")
+        self.run_command("git", "add", ".")
+        self.precommit()
+
+    def test_production_patterns_and_malformed_hook_fail_closed(self):
+        self.hook("echo before && prod-db --connect", expected=2)
+        self.hook("test-runner")
+        self.run_command("bash", str(GUARD), "pre-tool-use", input="{broken", expected=2)
+        self.values["Production commands"] = '["["]'
+        self.write_settings()
+        self.hook(expected=2)
+
+    def test_merge_reads_target_branch_evidence(self):
+        self.run_command("git", "checkout", "-qb", "feature/s01-demo")
+        reviews = self.root / "docs/reviews"
+        reviews.mkdir(parents=True)
+        (reviews / "s01-demo.md").write_text("Ship allowed: yes\n")
+        self.commit()
+        self.run_command("git", "checkout", "-q", "main")
+        self.hook("merge-tool feature/s01-demo")
+        self.hook("merge-tool feature/s02-missing", expected=2)
+        # An uncommitted positive report on the caller's branch cannot authorize another target.
+        reviews.mkdir(parents=True, exist_ok=True)
+        (reviews / "s02-missing.md").write_text("Ship allowed: yes\n")
+        self.hook("merge-tool feature/s02-missing", expected=2)
+
+    def test_chore_gate_preserves_validated_plan_exception(self):
+        self.run_command("git", "checkout", "-qb", "chore/doc-fix")
+        plans = self.root / "docs/plans"
+        plans.mkdir(parents=True)
+        (plans / "doc-fix.md").write_text("---\ntrack: chore\nvalidated: yes\n---\n")
+        self.commit()
+        self.hook("merge-tool chore/doc-fix")
+
+    def test_unresolved_merge_does_not_fall_back_to_current_branch(self):
+        self.values["Merge commands"] = '["merge-tool"]'
+        self.write_settings()
+        self.hook("merge-tool https://example.invalid/pr/42", expected=2)
+
+    def test_installs_all_targets_and_reinstall_preserves_project_files(self):
+        settings = (self.root / "AGENTS.local.md").read_bytes()
+        for target in ("claude", "codex", "all"):
+            with self.subTest(target=target):
+                self.install(target)
+                self.assertEqual((self.root / "AGENTS.local.md").read_bytes(), settings)
+        for name in ("ztp-intent", "ztp-ops"):
+            self.assertTrue((self.root / ".claude/commands" / (name + ".md")).is_file())
+            emitted = self.root / ".codex/skills" / name / "SKILL.md"
+            self.assertTrue(emitted.is_file())
+            self.assertNotIn("@templates/", emitted.read_text())
+        template = self.root / "templates/intent.md"
+        template.write_text("project customization\n")
+        self.install("all", "update")
+        self.assertEqual(template.read_text(), "project customization\n")
+        result = self.install("all", "--check")
+        self.assertNotIn("modified locally (will be overwritten", result.stdout)
+
+    def test_hooks_preserve_settings_and_prior_hooks_idempotently(self):
+        old = self.root / "custom-hooks"
+        old.mkdir()
+        for name in ("pre-commit", "pre-push"):
+            hook = old / name
+            hook.write_text("#!/bin/sh\nprintf 'old-" + name + "\\n'\n")
+            hook.chmod(0o755)
+        self.run_command("git", "config", "core.hooksPath", "custom-hooks")
+        config = self.root / ".claude/settings.json"
+        config.parent.mkdir()
+        original = {"permissions": {"deny": ["Read(private)"]}, "hooks": {"Stop": []}}
+        config.write_text(json.dumps(original))
+        self.install("all", "--hooks")
+        self.install("all", "--hooks")
+        actual = json.loads(config.read_text())
+        self.assertEqual(actual["permissions"], original["permissions"])
+        self.assertEqual(len(actual["hooks"]["PreToolUse"]), 1)
+        self.assertIn("old-pre-commit", self.run_command("bash", ".ztp-hooks/pre-commit").stdout)
+        self.assertIn("old-pre-push", self.run_command("bash", ".ztp-hooks/pre-push").stdout)
+
+    def test_codex_hooks_do_not_create_claude_settings(self):
+        self.install("codex", "--hooks")
+        self.assertFalse((self.root / ".claude").exists())
+
+    def test_invalid_claude_settings_are_preserved(self):
+        config = self.root / ".claude/settings.json"
+        config.parent.mkdir()
+        config.write_text("{broken")
+        self.install("claude", "--hooks", expected=1)
+        self.assertEqual(config.read_text(), "{broken")
+        self.assertEqual(self.run_command("git", "config", "--get", "core.hooksPath", expected=None).returncode, 1)
+
+    def test_original_plan_gate_still_blocks_code_and_allows_docs(self):
+        self.install("codex", "--hooks")
+        self.run_command("git", "checkout", "-qb", "feature/s01-test")
+        (self.root / "file.txt").write_text("new code")
+        self.run_command("git", "add", "file.txt")
+        self.run_command("bash", ".ztp-hooks/pre-commit", expected=1)
+        self.run_command("git", "restore", "--staged", "file.txt")
+        docs = self.root / "docs"
+        docs.mkdir()
+        (docs / "notes.md").write_text("notes")
+        self.run_command("git", "add", "docs")
+        self.run_command("bash", ".ztp-hooks/pre-commit")
+
+    def test_global_payload_supports_offline_init_for_both_targets(self):
+        payload = self.root / "payload"
+        payload.mkdir()
+        shutil.copytree(METHOD / "src", payload / "src")
+        shutil.copytree(METHOD / "bin", payload / "bin")
+        fake_user = self.root / "fixture-user"
+        # Substitute only destination literals in the fixture; never change the user's HOME.
+        script = (METHOD / "install.sh").read_text()
+        for name in (".claude", ".codex"):
+            script = script.replace("$HOME/" + name, str(fake_user / name))
+        installer = payload / "install.sh"
+        installer.write_text(script)
+        self.run_command("bash", str(installer), "--global", "--target", "all")
+        self.assertTrue((fake_user / ".codex/skills/ztp-ops/SKILL.md").is_file())
+        self.assertTrue((fake_user / ".claude/commands/ztp-intent.md").is_file())
+        cached = fake_user / ".claude/zero-to-prod/install.sh"
+        self.run_command("bash", str(cached), "init", "--target", "all", "--ci")
+        self.assertTrue((self.root / ".ztp-ci/ztp-ci.py").is_file())
+        self.assertTrue((self.root / "templates/ops-report.md").is_file())
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,5 +1,6 @@
 ---
 description: Create the project's AGENTS.local.md — the settings and commands the pipeline reads. Runs once, before /ztp-prd.
+argument-hint: <optional --observability to configure an existing project>
 allowed-tools:
   - Read
   - Glob
@@ -23,7 +24,16 @@ This command is the **only** creator of `AGENTS.local.md` — `install.sh` never
 finding it absent is the normal case, not an error.
 
 If `AGENTS.local.md` already exists → do NOT overwrite it. Show its current settings and stop:
-"Settings already in AGENTS.local.md. Edit that file directly, or delete it and rerun /ztp-setup."
+"Settings already in AGENTS.local.md. Edit it directly, or use /ztp-setup --observability to declare optional production signals."
+
+**Exception: `$ARGUMENTS` is `--observability`.** Read the existing file, show any declared
+deployment-log and error-tracking commands, and offer to configure those two optional
+sources, the observation window and rollback threshold. Accept commands only from the
+repository or the user's explicit answer; never infer a CLI from a hosting hostname. A
+decline changes nothing. On acceptance, edit only `Deployment logs`, `Error tracking`,
+`Performance signals`, `Usage signals`, `Ops days`, `Ops window` and `Ops rollback threshold`
+that the user confirmed (add absent keys), preserving every other setting. Then use Steps
+3–4's commit/reassembly discipline. Missing file → run normal setup first.
 
 ## Workflow
 
@@ -37,6 +47,9 @@ For the `Sandbox` settings: the configuration values that hold the product's own
 app's URLs and trusted origins, a mobile app's API base URL), the schema and migration
 directories, and a declared reset-and-seed script. Not found → `—`.
 Anything you find becomes the pre-filled answer, not a question.
+Also look for declared read-only deployment logs, error tracking, performance/usage queries
+and a staged-secret scanner. A provider name, an installed CLI or an environment variable
+does not prove a usable command; absent declarations remain `—`.
 
 ### Step 2 — Ask the four questions (AskUserQuestion)
 Only these four. Each one changes what the pipeline does; the rest is pre-filled.
@@ -53,6 +66,12 @@ Only these four. Each one changes what the pipeline does; the rest is pre-filled
    the project does not have stays `—`; never invent one. On a new project they are all `—`
    for now: `/ztp-architect` fills them once the foundation exists, with `Deploy`,
    `Smoke test` and `Rollback`.
+
+   In this same commands question, **offer, without requiring**, at least `Deployment logs`
+   and `Error tracking`, so `/ztp-ops` can be used from the start. Show only actual commands
+   found or supplied by the user. Offer the observation window and threshold when known.
+   Skipping leaves them `—` and does not block setup. `Secret scan` is prefilled only when
+   its staged-snapshot contract is confirmed; explain that opt-in `--hooks` needs it.
 
 `Ship confirmation` follows `Plan validation` unless the user says otherwise: a project that
 validates plans by hand confirms its ships by hand.

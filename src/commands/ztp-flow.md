@@ -41,8 +41,8 @@ You are FORBIDDEN from:
    through `/ztp-review`, "Fix policy"; the same contract governs every retry below.
 2. `docs/prd.md`, `docs/stories.md` and `docs/architecture.md` exist? Any missing → STOP and
    point at the phase that produces it. This track drives one story; it never replaces framing.
-3. Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against `docs/stories.md`. No
-   unambiguous match → list the available stories and stop.
+3. Resolve $ARGUMENTS using AGENTS.md, "Work sources" (story or `ticket:<reference>`).
+   No unambiguous source → stop. Use its criteria, complexity and dependencies throughout.
 4. `Story track: full` → STOP: "This project runs every story on the full pipeline. Use
    /ztp-orchestrator <id>." `Story track: flow` → continue. `Story track: auto` → continue
    only if the story's complexity is at or below `Flow threshold`; above it, STOP and say:
@@ -50,7 +50,7 @@ You are FORBIDDEN from:
 
 **Escalation signals.** Whatever the score, this track does not carry a story that involves
 a schema migration, a genuinely new screen, a change to authorization or tenant scope, a
-change to an API contract, or an added dependency. If `docs/stories.md` already shows one,
+change to an API contract, or an added dependency. If the resolved work source already shows one,
 STOP now and say which: "Story <id> <signal>. That belongs on the full pipeline —
 /ztp-orchestrator <id>."
 
@@ -64,7 +64,7 @@ the environment files copied (names only, never values). Any conflict it names i
 
 Apply the `testing-doctrine` skill when you write the test strategy.
 
-Read: `docs/stories.md` (the target story), `docs/architecture.md`, AGENTS.md — and
+Read: the resolved work source, `docs/architecture.md`, AGENTS.md — and
 `docs/design-system.md` plus `docs/designs/<id>/design.md` when the story touches UI.
 Output structure: @templates/plan-flow.md
 

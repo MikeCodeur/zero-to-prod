@@ -16,7 +16,9 @@ This document explains the method. The exact rules live in `src/AGENTS.md` and i
 
 **Each check runs once, and once only.** A deterministic command re-run on the same code returns the same answer. Focused tests run during the work, the full suite and the type check once at the end, end-to-end tests and the production build once when shipping.
 
-**The files are the state.** Everything the pipeline produces is markdown under `docs/`, versioned. No database, no state file: progress is derived from the files and git, so it cannot go stale.
+**The artifacts are the state.** Markdown under `docs/` holds the pipeline records, with
+explicit links when the tracker is authoritative. Progress is derived from those sources
+and git; no parallel state database is maintained.
 
 ## 2. Framing — once per project
 
@@ -39,7 +41,42 @@ This document explains the method. The exact rules live in `src/AGENTS.md` and i
 
 Either way, the conventions are written as rules the development agents can apply, and the **environments and the deployment** are defined once in `docs/deployment.md`: production (and staging if it exists), what triggers a deployment, the smoke test, the rollback procedure and what it does not undo. The phase ends with an **executed checklist** (`docs/foundation.md`): install, example test, type check, lint, build, start in the target environment, secrets kept out of the repository, commands and conventions true to the code. On a new project every applicable item must be green.
 
-## 3. The cycle — once per story
+## 3. La boucle
+
+    New product change → Intent → Stories → Existing cycle → Ship → Ops
+                           ↑                                      │
+                           └── product evolution, after validation ┘
+                                     defect → ticket → cycle
+
+**Intent is for new changes on an existing product.** Initial framing stays the PRD.
+`/ztp-intent` interviews the originator one question at a time, following each branch to a
+shared understanding. Only confirmed answers are recorded; explicit human acceptance makes
+the intent usable. The intent carries the **why** (problem, expected outcome, users,
+constraints, open questions); stories carry the **what**. It lives in `docs/intents/`, or in
+the declared ticket tracker with a local pointer. `/ztp-stories <intent>` adds its stories
+without rewriting the PRD or existing work. The breakdown review reads both sources.
+
+**A defect needs no intent.** It becomes a ticket, then uses flow or the full story cycle
+according to the existing escalation rules. Its execution brief in `docs/tickets/` links
+back to the tracker; it never enlarges the product perimeter. Chores and Quick Fix also need
+no intent. A request to restore promised behavior is different from a new product outcome.
+
+**Ship now hands off to observation.** After the deployment and its smoke test, `/ztp-ops`
+reads the declared deployment logs/error tracking for that release and observation window.
+It reports new related errors and proposes the documented rollback when the declared
+threshold is breached. The smoke-test rollback rule itself is unchanged. On demand or from
+a configured scheduler, `/ztp-ops last N days` also examines recurring errors, performance
+and usage where those sources exist. Reports persist in `docs/ops/` after worktree cleanup.
+
+Every finding gets a tracked follow-up: an existing/new defect ticket, a validated product
+intent, or an explicitly pending human interview. A headless run cannot invent the human's
+answers. No observability command → it says so and stops; failed collection or an incomplete
+window never means healthy. Setup offers deployment logs and error tracking without making
+either mandatory, including `/ztp-setup --observability` for an existing install.
+
+![The production feedback loop](src/assets/zero-to-prod-loop.png)
+
+## 4. The cycle — once per story
 
 One story = one `feature/<id>` branch = one dedicated worktree = one PR = one commit on the target branch.
 
@@ -63,7 +100,7 @@ One story = one `feature/<id>` branch = one dedicated worktree = one PR = one co
 
 `/ztp-orchestrator` chains a full cycle with two human checkpoints (validate the plan, confirm the ship); `/ztp-status` shows progress and the next useful command.
 
-## 4. Gates and tests
+## 5. Gates and tests
 
 | Gate | Check | What it blocks |
 |---|---|---|
@@ -76,7 +113,12 @@ These gates are file reads, not judgment calls: they work the same under Claude 
 
 **Testing doctrine.** Volume is not a safety net: a test budget per story (25 by default), and a plan that wants more must say why. Each rule is tested at the layer where it lives, once. The criterion that replaces the count: **a test that stays green when the rule it names is deleted is worse than no test.** No "red first" ceremony during implementation; the neutralization proof happens in review, in a fresh context, where it actually finds defects.
 
-## 5. Tools, installation, settings
+This deliberately differs from the Anthropic playbook's test-first bug-fix recommendation:
+Zero to Prod puts the proof that tests detect the defect in an independent review context,
+rather than asking the context that wrote them to certify its own tests.
+See [the playbook's feedback-loop lesson](https://academy.claude.com/courses/ai-native-sdlc-playbook/give-claude-a-feedback-loop).
+
+## 6. Tools, installation, settings
 
 One source (`src/`), one installer, one output per tool:
 
@@ -89,9 +131,29 @@ One source (`src/`), one installer, one output per tool:
 
 Options: `--target claude|codex|all`, `--global` then `init` per project, `update`, `--check` (lists installed files modified locally), `--hooks` (gates enforced by git). The rules live in `AGENTS.md`, read natively by both tools; the project's settings in `AGENTS.local.md`, which the installer never touches. Commands are slash commands under Claude Code and skills under Codex. The guarantees carried by tool permissions are mechanical under Claude Code and looser under Codex; that is why the gates are also carried by the repository.
 
-## 6. Known limits of V1
+With `--hooks`, Git also rejects staged secrets and declared protected paths. Claude Code
+additionally blocks declared production commands and checks the target's approval before
+a declared merge. Project paths and command patterns come from `AGENTS.local.md`; nothing is
+guessed. Hooks are local guardrails, not an OS sandbox or a replacement for branch protection.
+
+## 7. Learning and regression checks (optional)
+
+`/ztp-review-learn` turns sourced human PR feedback into proposed report/ignore rules. Only
+tech-lead approval activates `docs/review-rules.md`; the reviewer reads it alongside its
+generic checklist. Local preferences cannot weaken the existing gates or hide a critical.
+
+`/ztp-eval` collects 20–50 already accepted tasks in `docs/evals/`, pins their starting and
+accepted commits, and replays them headlessly with the current declared model/rules/skills.
+Independent checks judge the result; model claims do not. Reports record the configuration,
+task set and exits. This checks the agent configuration, without changing the testing doctrine
+for a product story. Without declared runners or enough proven tasks, no suite pass is claimed.
+
+`--ci` installs an optional PR workflow calling the existing gates. Fresh-context review and
+evals are explicit opt-ins, off by default. Automated build repair is documented as a project
+extension through a new PR and the existing gates; installation never enables it.
+
+## 8. Known limits of V1
 
 - **Team mode.** The method assumes one operator per repository: no distribution of stories between people, no lock on a story in progress, no convention for cross human review. To be addressed in V2.
 - **Mobile.** The "target environment" abstraction covers screen verification; native builds, signing and store publication are not covered.
-- **Operations.** Deployment stops at the smoke test and the documented rollback: no monitoring, alerting or production error tracking.
 - **Tools.** Claude Code and Codex only.

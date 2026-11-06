@@ -25,7 +25,7 @@ If you can't invoke the Agent tool, stop and report the error. Don't improvise.
 ## Workflow
 
 ### Step 1 — Prerequisites (fail-closed)
-1. Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against docs/stories.md. No unambiguous match → list the available stories, STOP.
+1. Resolve $ARGUMENTS using AGENTS.md, "Work sources"; no unambiguous story or ticket brief → STOP.
 2. Resolve `<repository-base>/.worktrees/<id>` and verify its branch is exactly `feature/<id>`. Missing worktree, wrong branch, detached HEAD or the repository base directory itself → STOP and run `/ztp-research <id>` to bootstrap the feature workspace. Never improvise another branch or path.
 3. From that worktree, read docs/plans/<id>.md. If it doesn't exist, STOP: ask for /ztp-plan <id> first. Go no further.
 4. Check the plan's frontmatter: it must contain `validated: yes`. Otherwise STOP: "Plan not validated. Review it, then rerun /ztp-plan <id> to validate."

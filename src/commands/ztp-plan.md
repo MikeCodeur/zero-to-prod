@@ -11,14 +11,14 @@ allowed-tools:
 ---
 You are planning a story's implementation. Target story: $ARGUMENTS
 
-Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against docs/stories.md. If there is no unambiguous match, list the available stories and stop.
+Resolve $ARGUMENTS using AGENTS.md, "Work sources"; ambiguity or a missing story/ticket brief stops.
 
 Locate the dedicated `.worktrees/<id>` worktree, verify that it is on exactly
 `feature/<id>`, and perform every read and write there. Missing worktree, wrong
 branch, detached HEAD or the repository base directory itself → STOP and run
 `/ztp-research <id>` first. Never create or switch branches here.
 
-Read: docs/stories.md (the target story), docs/research/<id>.md (if it exists), docs/design-system.md and docs/designs/<id>/design.md (if they exist), docs/architecture.md, AGENTS.md
+Read: the resolved work source, docs/research/<id>.md (if it exists), docs/design-system.md and docs/designs/<id>/design.md (if they exist), docs/architecture.md, AGENTS.md
 Output structure: @templates/plan.md
 
 Apply the `testing-doctrine` skill when you write the test strategy.
