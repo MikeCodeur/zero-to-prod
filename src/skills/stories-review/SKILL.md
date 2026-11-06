@@ -10,8 +10,8 @@ Why it runs here: a defect in `docs/stories.md` costs a markdown edit now, and c
 
 ## Checks, in order
 
-1. **Perimeter coverage** — every feature in the PRD's "In scope (core loop)" table must be delivered by at least one story. Walk the table, not the stories: it is the only way to see what is *missing*. A silently dropped feature is invisible until ship.
-2. **Out-of-scope leak** — nothing from "Out of scope" comes back as a story. That list exists to stop scope creep; a leak defeats the PRD.
+1. **Perimeter coverage** — every feature in the PRD's "In scope (core loop)" table and every linked accepted intent's expected outcome must be delivered by at least one story. Walk the sources, not the stories, to see what is *missing*. Verify source approval; an inaccessible canonical tracker record is not an accepted source.
+2. **Out-of-scope leak** — exclusions remain binding unless an accepted intent explicitly records the human-approved change. The intent authorizes only its stated addition, never unrelated scope.
 3. **Technical layers disguised as stories** — "set up the database", "create the API layer". No end-to-end user value, nothing testable, unshippable alone. The table gets created *inside* the story that needs it.
 4. **Untestable acceptance criteria** — each criterion must be able to become a test. "The form works" is not a criterion; "submitting a valid form shows a confirmation and persists the entry" is.
 5. **Dependency order** — no cycle, no forward reference (a story assuming work scheduled after it). The order must be executable top to bottom.

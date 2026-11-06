@@ -1,0 +1,35 @@
+# Optional: installed by install.sh --ci. Agent jobs are off in AGENTS.local.md by default.
+name: Zero to Prod
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out trusted policy
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: policy
+          persist-credentials: false
+      - name: Check out the proposed change
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check gates and configured optional jobs
+        working-directory: candidate
+        env:
+          ZTP_HEAD_BRANCH: ${{ github.head_ref }}
+          ZTP_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          ZTP_SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        # Branch names are environment data, never interpolated into shell source.
+        run: python3 ../policy/.ztp-ci/ztp-ci.py --branch "$ZTP_HEAD_BRANCH" --base "$ZTP_BASE_SHA" --policy ../policy
+      # To enable agents, declare trusted runners and provision their CLI + scoped model
+      # credentials in your own job/environment. Never add production credentials or use
+      # pull_request_target to execute PR code. Build repair is not enabled by this workflow.

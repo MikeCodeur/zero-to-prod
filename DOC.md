@@ -59,11 +59,66 @@ Format: one setting per line, `Name: value`, no trailing comment. The value is e
 | `E2E targets` | browsers, devices or platforms for the story cycle; ship always runs them all |
 | `Build stage` | when the production build runs: `ship-if-route` · `ship` · `review` · `ci` · `—` |
 | `Issue tracker` · `Worktree root` | where defects go, where worktrees live |
+| `Intent source` · `Intent read` · `Intent write` | repository intent or canonical tracker record; exact access commands when the tracker is authoritative |
+| `Deployment logs` · `Error tracking` · `Performance signals` · `Usage signals` | optional, declared read commands; none means operations cannot observe that source |
+| `Ops days` · `Ops window` · `Ops rollback threshold` | periodic history length, post-deploy observation minutes, and the explicit rollback-proposal threshold |
+| `Secret scan` · `Protected paths` · `Production commands` · `Merge commands` · `Merge resolve` | opt-in guard configuration; see below |
+| `Review history` | exact command returning human PR comments with author, resolution/context and canonical links |
+| `Eval runner` · `Eval check` · `Eval model` · `Eval config paths` · `Eval timeout` | optional replay command, independent checker, exact model, current configuration paths and per-command timeout |
+| `CI review` · `CI evals` · `CI review runner` | optional agent jobs, disabled until explicitly configured |
 | `Sandbox port base` · `Sandbox vars` · `Sandbox schema` · `Sandbox reset` | a story worktree's own runtime: its port or instance (base + story number), the configuration values that must follow it, the paths that call for its own data, the reset-and-seed command — read by the `story-sandbox` skill |
 
 Below the settings, `AGENTS.local.md` carries the **project profile** — `Product type`, `Target environment`, `UI check`, `E2E tool`, settled once by `/ztp-architect` so no agent asks again or proposes a tool the project does not use — then the **project commands** — `Package manager`, `Test`, `Typecheck`, `E2E`, `Build`, `Deploy`, `Smoke test`, `Rollback` — and the **project conventions**, filled by `/ztp-architect` (on a new project, the commands are `—` until the foundation exists). The commands are quoted verbatim by every agent that runs anything; none is ever invented.
 
 **After editing this file by hand, rerun `install.sh`.** Settings are read straight from it and take effect at once, but the conventions only reach an agent through the assembled `AGENTS.md`.
+
+## Intent and operations — the outer loop
+
+Initial framing still starts with the PRD. Once that product exists, a new feature or product
+evolution begins with `/ztp-intent`: a branch-by-branch interview, one question at a time,
+recording only confirmed answers. Human acceptance is required even when plan validation is
+autonomous. The intent explains why; `/ztp-stories <intent>` appends the what and links it
+back to that accepted source. Existing stories and the initial PRD stay intact. A change to
+an original exclusion must be explicitly accepted in the intent. The stories-review reads
+the enlarged scope through the same fresh-context review procedure.
+
+`Intent source: repo` stores `docs/intents/<id>.md`. `tracker` stores the canonical content
+and approval externally and leaves a local pointer. `Intent read` takes `ZTP_INTENT_REF` and
+returns that record's Markdown content, approval, reference and revision. `Intent write`
+takes the same reference and `ZTP_INTENT_FILE`, an absolute path to confirmed Markdown;
+it must return the canonical reference for a new record. Commands run verbatim with these
+values in the environment. A write is read back; a pointer or inaccessible record never
+counts as approval. Tracker exports supplied to the reviewer are dated working copies.
+
+**Defects, chores and Quick Fix need no intent.** A defect remains in the issue tracker.
+`/ztp-flow ticket:<reference>` or `/ztp-orchestrator ticket:<reference>` reads it and creates
+a linked execution brief under `docs/tickets/`, outside the product perimeter. Only input
+resolution changes; worktree isolation, escalation signals and every cycle gate still apply.
+
+After each successful deployment/smoke test, ship calls `/ztp-ops` with the actual release
+and deployment timestamp. It reports new related errors and proposes the existing rollback
+on a measured threshold breach. This does not change the existing response to a red smoke
+test. `/ztp-ops last N days` is also callable manually or by a project-configured scheduler.
+It looks at recurring errors, latency and usage where declared sources support them.
+
+### Configuring observation
+
+Setup offers **at least deployment logs and error tracking**, without requiring either.
+For an existing install, `/ztp-setup --observability` edits only the accepted observability
+settings. A provider name or installed CLI is not enough to infer a command.
+
+The read commands receive `ZTP_OPS_FROM`, `ZTP_OPS_TO`, `ZTP_OPS_BASELINE_FROM`,
+`ZTP_OPS_BASELINE_TO` (UTC ISO-8601) and `ZTP_OPS_RELEASE`. They must consume those windows or
+return timestamped/release-tagged evidence that can be filtered. Declare a positive
+`Ops window` in minutes and an unambiguous threshold: metric, comparator, value, unit and
+window. Missing thresholds are unknown, not automatically satisfied.
+
+Reports in `docs/ops/` record collection exits/coverage, evidence, limitations and stable
+follow-up keys. They live in the repository base so removing a story worktree cannot remove
+them. No sources → `not-configured`; failed collection or incomplete windows → no healthy
+verdict. Rollback is **proposed**, never triggered by this new command. Repeated findings
+link to the existing ticket/intent. Defects become tickets; new product outcomes enter the
+intent interview. In a headless run, unanswered interviews remain explicit pending actions.
 
 ## The pipeline
 
@@ -94,7 +149,7 @@ One setup step and five framing steps, once per product — the design system on
 
 **/ztp-prd** — frames the product by interviewing the user, one question at a time. First the **idea validation**: the problem and what it costs today, the users, and the one hypothesis the project stands on with the signal that will verify it — the section that carries the frame when there is no existing product to copy. Then the **starting point** (new project, existing codebase, replacement of a product or system) and the **product type**, which decide what `/ztp-architect` does; an optional **reference** (existing product, legacy system, mockups) used as a living spec; the **perimeter** — the core loop, each in-scope feature scored for complexity (1-5, heavy features default to out of scope) — and the exhaustive **out-of-scope** list; an optional differentiation; constraints and measurable success criteria. Nothing is filled without validation. The WHAT and the WHY, never the HOW.
 
-**/ztp-stories** — breaks the PRD into agentic-ready user stories (`agentic-stories` skill): each an end-to-end shippable slice, with acceptance criteria that can become tests, agentic notes (files involved, traps), and a complexity score (1-5, PRD scale): a 4 flags its risk, a 5 is split before planning.
+**/ztp-stories** — breaks the PRD, or an accepted intent supplied as input, into agentic-ready user stories (`agentic-stories` skill): each an end-to-end shippable slice, with acceptance criteria that can become tests, agentic notes (files involved, traps), and a complexity score (1-5, PRD scale): a 4 flags its risk, a 5 is split before planning. Intent mode appends linked stories and preserves the initial perimeter history.
 
 **/ztp-stories-review** — reviews the breakdown in a fresh context (`stories-reviewer` subagent, read-only, no shell) against the PRD it came from. It walks the PRD perimeter table first — a core-loop feature covered by no story is the most expensive defect in the pipeline, invisible until ship — then hunts out-of-scope leaks, technical layers disguised as stories, criteria that can't become tests, broken dependency order, unsplit complexity-5 stories, malformed ids and overlaps. Report ends with `Max severity:` and `Stories ready: yes|no`. This is a **soft gate**: it doesn't block mechanically, it is surfaced by `/ztp-status` and warned about by `/ztp-research`. A bad split costs a markdown edit here, and cycles later.
 
@@ -169,7 +224,9 @@ Every later phase resolves the absolute path and verifies the exact branch. Miss
 
 ## Data & storage
 
-Everything the pipeline produces is markdown under `docs/`, versioned by git. No database, no state file, no external tracker.
+Pipeline artifacts are Markdown under `docs/`, versioned by git. A tracker may be the
+canonical home of intents and defect tickets; local pointers/briefs identify it. Progress is
+derived from these records and git, never maintained in a second state database.
 
 | Data | Lives in |
 | --- | --- |
@@ -179,6 +236,11 @@ Everything the pipeline produces is markdown under `docs/`, versioned by git. No
 | Decisions | `docs/decisions/NNN-<slug>.md` — MADR-style ADRs: context, options rejected and why, consequences. Immutable, superseded not edited |
 | Design | `docs/design-system.md` (global) ; `docs/designs/<id>/` per story — the mockup is a reference, never production code |
 | Pipeline state | derived from files, verdict, correction history, current settings and git; `Fix action` in a report is recomputed before acting |
+| Change intents | `docs/intents/<id>.md` — accepted content, or pointer to the canonical tracker |
+| Corrective execution briefs | `docs/tickets/<work-id>.md` — ticket reference, revision, criteria, complexity; not product perimeter |
+| Operations | `docs/ops/<UTC timestamp>-<release-or-period>.md` — evidence, status, follow-up links |
+| Project review policy | `docs/review-rules.md` — only the tech-lead-approved policy is active |
+| Agent evals | `docs/evals/<id>.md` and `docs/evals/runs/<UTC timestamp>.md` |
 
 Lifecycle: framing docs are committed on the default branch at the end of their phase. Story docs travel with the story on `feature/<id>`. **One commit per story, not one per task** — the implementer's single commit carries the research, the design, the plan with its ticked checkboxes, the verification record and the code of every task; `/ztp-ship` commits the review. The plan file is the live progress tracker, never a commit trigger. Branch commits are squashed at merge, so the default branch gets one commit per story. Every PR therefore carries its own research, design, plan, verification and review: the audit trail is the PR itself.
 
@@ -318,6 +380,115 @@ One canonical source (`src/`, Claude-shaped, the richest target), one installer,
 
 Opt-in git hooks (installed via `core.hooksPath`, reversible with `git config --unset core.hooksPath`) enforce the gates in git, identically for every tool:
 
-- **pre-commit** — no code on `feature/<id>` without `docs/plans/<id>.md` → `validated: yes` (docs-only commits pass).
+- **pre-commit** — staged-secret scan, declared protected paths, then the unchanged plan gate
+  on `feature/<id>` / `chore/<id>`. Docs-only commits skip only the plan gate.
+- **Claude PreToolUse** — protected file edits, declared production commands, and approval
+  checks for declared merge commands. Codex shares the Git protections; this tool hook is
+  Claude-specific. A hook error is translated to exit 2 so Claude blocks the action.
 
 So "no code without a validated plan" holds whatever the harness — enforcement lives in the repo, not the tool. There is no push-time hook: `/ztp-ship` squash-merges, so a merged story leaves no merge commit to detect client-side. The ship gate belongs server-side — `ztp-gate ship-allowed <id>` in CI or branch protection.
+
+### Guard configuration
+
+`--hooks` requires Python 3.9+. `Secret scan` is the project's real scanner wrapper: it runs
+from the repo root, scans files below the absolute `ZTP_SCAN_DIR`, and exits nonzero on a
+secret **or a scan error**. That directory contains the exact staged added/changed blobs;
+unstaged edits cannot hide a staged secret. Symlinks are exported as link text, never
+followed. Scanner output is withheld to avoid leaking the secret into a transcript. An
+absent scanner blocks commits; installation never silently installs or chooses one.
+
+`Protected paths` is a JSON array of repository-relative globs; a trailing slash covers a
+subtree. The matcher treats `*` as matching across slashes. Renaming or deleting a protected
+path is also blocked. `Production commands` and `Merge commands` are JSON arrays of Python
+regular expressions against the Bash command string. `[]` explicitly declares no rules;
+missing or malformed required guard configuration fails closed. Nothing fills these arrays
+from guessed paths or provider names.
+
+A merge pattern can capture `(?P<branch>...)`; otherwise `Merge resolve` must read
+`ZTP_GUARD_COMMAND` and return exactly the target `feature/<id>` or `chore/<id>`. PR URLs
+therefore need the project's own read-only resolver. The hook reads the target branch's
+committed approval, never an unrelated current worktree's report. Unresolved/inaccessible
+targets block. Chores retain their validated chore-plan exception. These are declared-pattern
+guardrails, not a parser of every shell equivalent, a credential sandbox or tamper-proof
+server policy; branch protection remains the merge authority.
+
+Installation preserves existing Claude settings and chains existing Git hooks (including
+non-commit hooks). It records their prior directory in `.ztp-hooks/.previous-hooks-path`.
+Reinstall with `--hooks` to refresh the guards. To undo them, restore that prior Git setting
+(or unset it when it was the default) and remove only ZTP's entry from Claude `PreToolUse`.
+
+## Project review learning
+
+`/ztp-review-learn` accepts an export or the declared `Review history` command, with
+`ZTP_REVIEW_RANGE` as input. Evidence must include authorship, context/resolution and canonical
+comment links. Bot comments and unknown authorship cannot become human policy. The command
+proposes scoped report/ignore rules in `docs/review-rules.proposed.md`, keeping active rules
+intact. Only explicit tech-lead approval promotes it to `docs/review-rules.md` with identity
+and date. The reviewer reads approved rules; ignored noise cannot conceal a critical, weaken
+the checklist, change severity or remove neutralization.
+
+## Agent evals
+
+`/ztp-eval collect` prepares 20–50 real, already accepted tasks, with their base and accepted
+commits, original prompt, expected behavior and checker evidence. It does not invent a demo
+dataset for the product. Confirm the accepted result with the checker during collection.
+`/ztp-eval run` invokes the installed `.ztp-tools/ztp-eval.py`; `run --case <id>` is a pilot.
+
+Declare `Eval runner`, `Eval check`, `Eval model`, a nonempty JSON `Eval config paths` array
+and `Eval timeout`. Each replay starts from its pinned historical base in a disposable
+worktree, overlaid with the **current** declared configuration. The runner must select the
+exact declared model and use a fresh noninteractive session with the project's sandbox and
+tool restrictions. A worktree alone does not restrict credentials or network access.
+
+Both commands run with the replay as cwd. `ZTP_EVAL_TASK` points to a frozen copy of the task;
+`ZTP_EVAL_MODEL` selects the configured model; stdout is captured at `ZTP_EVAL_RESULT` for
+the checker. The checker also receives `ZTP_EVAL_WORKTREE`, `ZTP_EVAL_ACCEPTED` and
+`ZTP_EVAL_SOURCE` (the original project). Keep trusted checker scripts outside the agent's
+writable checkout and invoke them through that source path. Runner claims are never proof.
+Dependencies/fixtures belong to the declared wrapper, not guessed setup commands.
+
+Reports in `docs/evals/runs/` contain task/configuration fingerprints, exits and results,
+without raw model output. A timeout fails the case. All cases must pass; one pilot cannot
+certify the suite. Compare past reports only when task expectations and checker code still
+match. Changing model, rules or skills calls for a replay; `CI evals: yes` opts CI into it.
+
+## Optional CI
+
+`install.sh --ci` installs `.github/workflows/ztp.yml`, `.ztp-ci/ztp-ci.py` and a copy of the
+existing gate. It does **not** enable Git hooks, agent jobs, paid calls or build repair.
+The workflow runs on `pull_request`, with read-only repository permission and no persisted
+Git credentials. It checks out the base policy separately from the proposed change. Branch
+names enter through environment variables, not interpolated shell source. The gate script
+and opt-ins come from the base, so a PR cannot simply turn its own check off.
+
+Feature PRs require their plan and ship gates; chore PRs require their validated chore plan;
+other branches are accepted only for `docs/`-only changes. This preserves the chore exception.
+The CI installation itself needs a reviewed bootstrap on the target branch before that
+branch can serve the trusted gate; a missing base policy fails explicitly. Make the resulting
+check required in the host's branch protection after bootstrap.
+
+`CI review: yes` requires a declared `CI review runner`, installed tooling/CLI and scoped model
+access. The runner reads `ZTP_REVIEW_PROMPT`, runs the trusted reviewer contract in a separate
+story worktree/fresh session and writes `ZTP_REVIEW_REPORT`. It also receives `ZTP_CI_POLICY`,
+`ZTP_REVIEW_ID`, `ZTP_REVIEW_BASE` and `ZTP_REVIEW_HEAD`. This is an additional CI report under
+`docs/reviews/ci/`, never reuse of the author's submitted verdict. Mutations must be restored;
+an incomplete report blocks. Chores do not acquire a code-review gate. Configure artifact
+retention for reports in your CI if you want them beyond the disposable job.
+
+`CI evals: yes` calls the eval runner. Agent jobs require a trusted same-repository run;
+missing access cannot become a green result. Provision the chosen Claude Code or Codex
+runner through the project's own wrapper and current official documentation. No production
+credentials belong in these jobs. Never switch to `pull_request_target` to run fork code
+with secrets. Customized workflows are kept on reinstall; use `--ci` to refresh an unmodified
+workflow and the runtime.
+
+**Build repair is disabled and not installed.** A project may add an explicitly enabled job
+that reads its declared build log and prepares a corrective PR. It must use a bounded,
+isolated runner, preserve tests, pass the normal review/gates and await the existing merge
+authority. It must not push to the target branch, deploy or weaken a failing check.
+
+## Explanatory visuals
+
+The two diagrams and the offline slide deck live under `src/assets/` in the method repository;
+they are documentation assets and are not copied into target projects. Their source prompts
+are recorded beside them. [Open the slides](src/assets/slides/index.html).

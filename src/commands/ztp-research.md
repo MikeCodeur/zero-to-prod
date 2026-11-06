@@ -11,7 +11,7 @@ allowed-tools:
 ---
 You are exploring a story's context before it gets planned. Target story: $ARGUMENTS
 
-Resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against docs/stories.md. If there is no unambiguous match, list the available stories and stop.
+Resolve $ARGUMENTS using AGENTS.md, "Work sources" (story or `ticket:<reference>`). Ambiguous or unavailable source → stop. Use the resolved source's criteria and complexity throughout.
 
 ## Workspace bootstrap (fail-closed)
 
@@ -21,7 +21,7 @@ the environment files copied (names only, never values). Any conflict it names i
 
 If docs/reviews/stories.md is missing, or says `Stories ready: no`, say so: the breakdown hasn't passed /ztp-stories-review, so this story may not match the PRD perimeter. Continue only if I confirm — this is a warning, not a block.
 
-Read: docs/stories.md (the target story), docs/architecture.md, AGENTS.md
+Read: the resolved work source, docs/architecture.md, AGENTS.md
 Output structure: @templates/research.md
 
 Apply the codebase-analysis skill to the story's scope: the CURRENT state of the code, not what the docs claim — the code may have drifted since previous stories.
@@ -32,7 +32,7 @@ Proceed as follows:
 3. Verify the story's PREMISE, not just the existence of what it names. A story asserts things — this guard reads that key, this function resolves that limit, this screen shows that state. Open the code and check each assertion: exact name, signature, location, AND behaviour on the story's case. Never assert from memory. A function that exists and throws on the story's input invalidates the premise — say it at the top of the report: a false premise is the most valuable thing this command can find, and it gets repaired in the story, not patched at planning.
 4. Spot the traps: existing tests, dependencies between modules, code touched by previous stories.
 5. Note what you could NOT settle in the "Open questions" section — an honest unknown beats a plausible guess.
-6. Re-score the story's complexity now that you have read the code, and compare with docs/stories.md. A score given before anyone opened a file is a guess; yours is not. A verdict of 5 carries a split proposal — it belongs here, where the facts are.
+6. Re-score the work's complexity now that you have read the code, and compare with its source. A score given before anyone opened a file is a guess; yours is not. A verdict of 5 carries a split proposal — it belongs here, where the facts are.
 7. Write the result to `docs/research/<id>.md`. **Cap it at ~200 lines.** Three agents read
    this file afterwards and pay for its length. Keep what carries decisions — false
    premises first, migration yes/no, name collisions, open questions, complexity — and cut

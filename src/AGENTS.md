@@ -45,9 +45,21 @@ Setup → PRD → User Stories → Stories Review → Architecture (foundation +
 
 No code is written before the story has a validated plan (`/ztp-plan`). No feature ships before a passed review (`/ztp-review`).
 
+### A request in plain words — propose the lane, never start one
+
+A request that is not a `/ztp-*` command is not a go-ahead for a cycle. Before creating a
+worktree or a branch, writing a plan or running a command, say which lane you would take and
+why — Quick Fix, `/ztp-chore`, or a story (`/ztp-flow`, `/ztp-orchestrator`) — and ask the human
+(AskUserQuestion where available). Nothing starts before the answer. A question — explain,
+analyze, compare — changes nothing and needs no lane.
+
+Two exceptions only: the human typed the command; or they said beforehand, in this session, to
+run named stories or a backlog autonomously. That covers the work they named, not whatever
+comes up next.
+
 ### Quick Fix mode — the one exception
 
-**Only on the user's explicit request**, and only for a small, local, well-understood,
+**Only once the human has chosen it** — proposed by you as above, or asked for by name — and only for a small, local, well-understood,
 easily reversible adjustment: a color, spacing, radius, font size or button style; short UI
 copy or a translation; a layout or responsive nudge; restoring an existing presentation
 affordance. The primary agent implements it directly — it may use a subagent to investigate
@@ -86,6 +98,12 @@ Utilities: `/ztp-orchestrator` (the whole cycle, with the two human checkpoints)
 `/ztp-chore` (work that changes no product behavior: a short validated plan, the implementer,
 a verification sized to what changes, no review), `/ztp-test-prune` (a chore that prunes an
 existing end-to-end suite to the doctrine).
+
+After initial framing, a new product change starts with `/ztp-intent`, then an additive
+`/ztp-stories` breakdown. Ship hands production evidence to `/ztp-ops`; findings return as
+tickets or intent interviews. Initial PRD, defects, chores and Quick Fix need no intent.
+Optional: `/ztp-review-learn` (human-approved project review rules), `/ztp-eval` (regression
+tasks for the agent configuration). Neither changes the story cycle's gates or test doctrine.
 
 **Run the commands. Never hand-roll the agent call.** They carry what the pipeline has
 learned — fix mode, the subagent definitions, the gates. A briefing written by hand replaces
@@ -142,7 +160,22 @@ there, with its `file:line`.
 - Every story has an id: `s<number>-<short-slug>` (e.g. `s01-submit-testimonial`). It is assigned in docs/stories.md and reused verbatim everywhere: `docs/research/<id>.md`, `docs/plans/<id>.md`, `docs/reviews/<id>.md`, branch `feature/<id>`.
 - All work on a story happens on `feature/<id>`, branched from the default branch. Never commit story work to the default branch.
 - The story diff = `git diff <default-branch>...feature/<id>`. Review judges it, except for a correction review explicitly scoped by `/ztp-review`.
-- A command that receives a fuzzy story name resolves it against docs/stories.md; if there is no unambiguous match, it lists the available stories and stops.
+- A command resolves its target using the work-source contract below; ambiguity always stops.
+
+### Work sources
+A product story resolves against `docs/stories.md`. A defect resolves against its execution
+brief in `docs/tickets/<id>.md`, including briefs in existing dedicated worktrees. Never add
+it to the product perimeter. The brief supplies the same criteria, complexity and dependencies.
+At entry only (`research`, `flow`, `orchestrator`), `ticket:<reference>` reads the canonical
+ticket through the configured `Issue tracker` access. Missing access or unclear expected
+behavior → stop for triage. Score complexity from the verified scope. Reuse its existing work id; otherwise allocate the next unused
+`s<number>-fix-<slug>` across stories, tickets and worktrees. After workspace bootstrap, write
+the brief there using `templates/ticket.md`, with source/revision and no invented requirement.
+The tracker remains authoritative; refresh at entry, flag changed scope for plan validation.
+Later phases read that verified brief in place of the target story; a bare unknown id stops.
+Before a brief exists, any handoff forwards the original `ticket:<reference>`, not a new id.
+This changes the cycle's input only: same branch/worktree, escalation rules, plan and review
+gates, testing and ship. A defect never needs an intent or a new PRD.
 
 ## Gate (mechanical)
 - The review report `docs/reviews/<id>.md` must end with the exact lines `Max severity: <critical|major|minor|none>` and `Ship allowed: <yes|no>`. A single critical = no.
@@ -188,10 +221,13 @@ as well. "Rendered" means opened the way `UI check` says — a browser, a device
 device. Full doctrine: the `design-doctrine` skill.
 
 ## Data & docs lifecycle
-All pipeline data lives in markdown files under docs/, versioned by git. No database, no state file: the pipeline state is derived from the files (a story is planned if docs/plans/<id>.md exists, shipped if its review says `Ship allowed: yes` and the branch is merged) — a derived state can't go stale.
+Pipeline artifacts live in markdown under docs/, versioned by git; tracker-backed intents
+use a local pointer to the canonical record. State is derived from artifacts and git, never
+a parallel state database. An inaccessible external source is unverified, never a pass.
 
 - Framing docs — docs/prd.md, docs/stories.md, docs/reviews/stories.md, docs/architecture.md, docs/foundation.md, docs/deployment.md, docs/design-system.md: committed on the default branch at the end of their phase. (docs/reviews/stories.md reviews the breakdown, not a story: it is a framing doc, unlike docs/reviews/<id>.md which travels with its branch.)
 - Story docs — docs/research/<id>.md, docs/designs/<id>/ (brief.md, design.md, mockup.html), docs/plans/<id>.md, docs/verif/<id>.md, docs/reviews/<id>.md: committed on feature/<id>. The implementer's single story commit brings the research, the design and the plan; /ztp-ship commits the review. Every PR carries its own research, design, plan and review.
+- Change intake — `docs/intents/` on the target branch; corrective briefs in `docs/tickets/` travel with their work branch. `docs/ops/` reports stay in the repository base after ship cleanup.
 - Document size — research ~200 lines, plan ~250, review ~150. Every downstream agent reads these files and pays for their length. Cap the prose, never the decision tables: what carries decisions stays whole.
 - Task progress — the checkboxes in docs/plans/<id>.md: the implementer ticks each task as it lands, and they travel in the story's commit. The plan file is the live progress tracker, never a commit trigger.
 - Commits — **one commit per story**, not one per plan task. A second commit only for something you would want to revert on its own (typically a migration). The branch's commits are squashed at merge, so the default branch gets one commit per story.

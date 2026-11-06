@@ -41,6 +41,21 @@ Sandbox port base: 3000
 Sandbox vars:      —
 Sandbox schema:    —
 Sandbox reset:     —
+Intent source:     repo
+Intent read:       —
+Intent write:      —
+Ops days:          7
+Ops window:        —
+Ops rollback threshold: —
+Protected paths:   []
+Production commands: []
+Merge commands:    []
+Merge resolve:     —
+Eval model:        —
+Eval config paths: []
+Eval timeout:      600
+CI review:         no
+CI evals:          no
 ```
 
 | Setting | Accepted values |
@@ -66,6 +81,19 @@ Sandbox reset:     —
 | Sandbox schema | paths whose change means a schema or storage-format change, so the story gets its own data, comma-separated |
 | Sandbox reset | the command that resets and seeds the local data |
 | Build stage | when the release build runs: `ship-if-route` (only when a route, a manifest or the packaging configuration moved) · `ship` · `review` · `ci` · `—`. In a compiled language the test command already compiles; this setting governs the release build (optimized binary, package, bundle) |
+| Intent source | `repo` (`docs/intents/`) or `tracker` (canonical external record, local pointer); applies only to new changes on an existing product |
+| Intent read / Intent write | exact commands for the chosen tracker; environment: `ZTP_INTENT_REF`, `ZTP_INTENT_FILE`. `—` disables that access |
+| Ops days | positive number of days for a periodic report; a caller may supply N explicitly |
+| Ops window | positive number of minutes after deployment to observe; `—` means undecided |
+| Ops rollback threshold | explicit metric, comparator, value, unit and window; `—` means the rollback assessment is unavailable |
+| Protected paths | JSON array of repo-relative glob patterns; a trailing `/` protects its subtree. `[]` explicitly protects none |
+| Production commands | JSON array of regular expressions for commands that must be blocked under Claude Code; `[]` declares none |
+| Merge commands | JSON array of regular expressions for merge commands. Capture the target as `(?P<branch>...)` or declare `Merge resolve`; an unresolved target blocks |
+| Merge resolve | exact read-only command returning the target `feature/<id>` or `chore/<id>`; receives `ZTP_GUARD_COMMAND`. `—` requires a branch capture |
+| Eval model | exact model chosen by the declared headless runner; `—` disables evals |
+| Eval config paths | JSON array of existing repo-relative current rules/skills/hooks to overlay on each pinned task base; must be nonempty to run |
+| Eval timeout | positive maximum seconds for each headless/check command |
+| CI review / CI evals | `yes` or `no`; optional jobs disabled by default |
 
 ## Project profile
 
@@ -98,11 +126,33 @@ Build:             —
 Deploy:            —
 Smoke test:        —
 Rollback:          —
+Deployment logs:   —
+Error tracking:    —
+Performance signals: —
+Usage signals:     —
+Secret scan:       —
+Review history:    —
+Eval runner:       —
+Eval check:        —
+CI review runner:  —
 ```
 
 A command left at `—` is one the agents cannot run: they say so rather than guess one.
 `Deploy`, `Smoke test` and `Rollback` are filled by `/ztp-architect` when they are commands; a
 manual step stays `—` here and is described in `docs/deployment.md`.
+
+Observability is optional: `/ztp-setup` offers deployment logs and error tracking without
+requiring them. `/ztp-ops` supplies its UTC windows/release as `ZTP_OPS_*` environment values
+(see the command); the declared wrappers must support them or return filterable evidence.
+With `--hooks`, `Secret scan` is required to commit: it must scan the exported staged blobs
+at `ZTP_SCAN_DIR` and exit nonzero on a secret or an error. The hook runs it from the repo
+root and never prints scanner output. `—` blocks commits rather than skipping the scan.
+Guard arrays are declarations, not guessed defaults; review them before enabling hooks.
+
+Headless contracts and CI activation are documented in DOC.md. `Eval runner` receives
+`ZTP_EVAL_TASK`, `ZTP_EVAL_RESULT`, `ZTP_EVAL_MODEL`; `Eval check` also receives
+`ZTP_EVAL_WORKTREE` and `ZTP_EVAL_ACCEPTED`. Both run with the replay as cwd. The checker
+command/script must be trusted and outside the replay; use `ZTP_EVAL_SOURCE` to locate it.
 
 ## Project conventions
 

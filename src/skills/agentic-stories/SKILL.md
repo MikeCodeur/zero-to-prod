@@ -13,7 +13,7 @@ Principles:
 - Explicit dependencies: order the stories so that none assumes work not yet done.
 - Size: implementable in one Research → Design → Plan → Execute → Review → Ship cycle. If the plan would exceed roughly ten tasks, the story is too big: split it.
 - Complexity score: rate each story 1-5 (same scale as the PRD perimeter). A 4 must call out its risk in the agentic notes; a 5 never stays one story — split it before it reaches /ztp-plan.
-- Reference as spec: when the PRD names a reference (existing product, legacy system, mockups), point each story to its equivalent flow or screen in the agentic notes. Never turn anything from the PRD's "Out of scope" list into a story.
+- Reference as spec: when the PRD names a reference (existing product, legacy system, mockups), point each story to its equivalent flow or screen in the agentic notes. The approved scope is the PRD plus accepted change intents; an initial exclusion changes only through an explicit human-approved decision in its intent. Link each story to its source.
 - Id: every story gets `s<number>-<short-slug>` (e.g. s01-submit-testimonial), reused verbatim in every pipeline file and in the branch name.
 
 Example — bad vs good:

@@ -1,16 +1,19 @@
 # Stories Review — <product name>
 
-> Fresh-context review of `docs/stories.md` against `docs/prd.md`. Each issue classified: critical / major / minor.
+> Fresh-context review of `docs/stories.md` against `docs/prd.md` and linked accepted intents. Each issue classified: critical / major / minor.
+
+Sources reviewed: <PRD revision, intent ids and canonical revisions; inaccessible sources block>
 
 ## Perimeter coverage
-| PRD feature (core loop) | Covered by | OK? |
+| PRD feature / accepted intent outcome | Covered by | OK? |
 |---|---|---|
 | <feature> | <story id> | ✅ / ❌ |
 
 - [ ] Every feature of the PRD "In scope (core loop)" table is delivered by at least one story
+- [ ] Every linked intent is accepted and its outcome covered; canonical tracker sources verified
 
 ## Scope
-- [ ] No story reintroduces an item from the PRD "Out of scope" list
+- [ ] Any change to a PRD exclusion has an explicit approved intent decision
 - [ ] No story goes beyond the perimeter
 
 ## Story quality

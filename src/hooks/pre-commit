@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
-# zero-to-prod — installed via core.hooksPath. Blocks code commits without a validated plan.
+# zero-to-prod — guards, then the existing plan gate, then the project's previous hook.
 set -euo pipefail
-exec "$(dirname "$0")/ztp-gate.sh" pre-commit
+hook_dir="$(cd "$(dirname "$0")" && pwd)"
+"$hook_dir/ztp-guard.sh" pre-commit
+"$hook_dir/ztp-gate.sh" pre-commit
+exec "$hook_dir/ztp-prior-hook.sh" pre-commit "$@"

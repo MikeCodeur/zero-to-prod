@@ -4,6 +4,8 @@
 > Id format: `s<number>-<short-slug>` — reused in every pipeline file and in the branch name.
 
 ## Story <id> — <title>
+Source: <docs/prd.md or docs/intents/<id>.md; canonical revision when tracker-backed>
+
 **As a** <user> **I want** <action> **so that** <benefit>.
 
 ### Complexity

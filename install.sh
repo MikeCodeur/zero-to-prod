@@ -14,6 +14,7 @@ set -euo pipefail
 #   ./install.sh update [--target …]   Updates tooling + templates (keeps your local edits)
 #   ./install.sh --check               Lists installed files modified locally (writes nothing)
 #   --hooks                            Installs the enforcement git hooks (opt-in, reversible)
+#   --ci                               Installs the optional PR gate workflow (agents off by default)
 #   --force                            Also overwrites locally modified templates
 #
 # Two scopes for each target: project (current repo) or global (--global).
@@ -40,11 +41,12 @@ CACHE="$HOME/.claude/zero-to-prod"
 ORIG="./.zero-to-prod/templates.orig"   # baseline templates (tool-neutral), for local-edit detection
 
 # --- Arguments: mode + --target + --hooks + --force ---
-FORCE=0; HOOKS=0; TARGET="claude"; MODE=""
+FORCE=0; HOOKS=0; INSTALL_CI=0; TARGET="claude"; MODE=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -f|--force)   FORCE=1 ;;
     --hooks)      HOOKS=1 ;;
+    --ci)         INSTALL_CI=1 ;;
     --check)      MODE="check" ;;
     --target)     TARGET="${2:-}"; shift ;;
     --target=*)   TARGET="${1#--target=}" ;;
@@ -115,6 +117,28 @@ sync_templates() {
   done
 }
 
+# Shared, tool-neutral runtime. Merely installing never runs an eval or an agent.
+copy_runtime() {
+  mkdir -p ./.ztp-tools
+  cp "$SRC/tools/ztp-eval.py" ./.ztp-tools/
+}
+
+install_ci() {
+  local workflow="./.github/workflows/ztp.yml" baseline="./.zero-to-prod/ztp-ci.orig.yml"
+  mkdir -p ./.ztp-ci ./.github/workflows ./.zero-to-prod
+  cp "$SRC/hooks/ztp-gate.sh" ./.ztp-ci/
+  cp "$SRC/tools/ztp-ci.py" ./.ztp-ci/
+  if [ ! -e "$workflow" ] || { [ -f "$baseline" ] && cmp -s "$workflow" "$baseline"; }; then
+    cp "$SRC/templates/ztp-ci.yml" "$workflow"
+    cp "$SRC/templates/ztp-ci.yml" "$baseline"
+    echo "✅ Optional CI installed; review and eval jobs remain opt-in."
+  elif cmp -s "$workflow" "$SRC/templates/ztp-ci.yml"; then
+    cp "$SRC/templates/ztp-ci.yml" "$baseline"
+  else
+    echo "⚠  $workflow already customized — kept. Updated template: templates/ztp-ci.yml"
+  fi
+}
+
 # The zero-to-prod repository itself is not a project: its root AGENTS.md carries the method's
 # maintenance rules, not the pipeline's. Never overwrite it when self-installing.
 is_method_repo() { [ -f ./src/commands/ztp-prd.md ] && [ -f ./install.sh ]; }
@@ -155,13 +179,11 @@ wire_claude_md() {
 install_hooks() {
   command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1 || {
     echo "⚠  Not a git repository — hooks not installed. (git init, then ./install.sh --hooks)"; return 0; }
-  mkdir -p ./.ztp-hooks
-  cp "$SRC/hooks/ztp-gate.sh" "$SRC/hooks/pre-commit" ./.ztp-hooks/
-  chmod +x ./.ztp-hooks/ztp-gate.sh ./.ztp-hooks/pre-commit
-  git config core.hooksPath .ztp-hooks
-  echo "✅ Git hooks installed (core.hooksPath=.ztp-hooks). Gate: no code without a validated plan."
-  echo "   The ship gate (ztp-gate ship-allowed <id>) belongs in CI / branch protection."
-  echo "   Disable: git config --unset core.hooksPath"
+  command -v python3 >/dev/null 2>&1 || {
+    echo "✗ Python 3.9+ is required for --hooks (JSON settings and staged-content checks)." >&2; return 1; }
+  python3 -c 'import sys; sys.exit(sys.version_info < (3, 9))' || {
+    echo "✗ --hooks requires Python 3.9 or newer." >&2; return 1; }
+  python3 "$SRC/hooks/install-hooks.py" "$SRC/hooks" "$TARGET"
 }
 
 # --check: compares the install to the payload, through .ztp-manifest. Writes nothing.
@@ -190,15 +212,35 @@ check_drift() {
   fi
 }
 
+check_runtime_drift() {
+  local mapping dest source
+  for mapping in \
+    '.ztp-tools/ztp-eval.py:tools/ztp-eval.py' \
+    '.ztp-ci/ztp-ci.py:tools/ztp-ci.py' \
+    '.ztp-ci/ztp-gate.sh:hooks/ztp-gate.sh' \
+    '.ztp-hooks/pre-commit:hooks/pre-commit' \
+    '.ztp-hooks/ztp-gate.sh:hooks/ztp-gate.sh' \
+    '.ztp-hooks/ztp-guard.py:hooks/ztp-guard.py' \
+    '.ztp-hooks/ztp-guard.sh:hooks/ztp-guard.sh' \
+    '.ztp-hooks/ztp-prior-hook.sh:hooks/ztp-prior-hook.sh'; do
+    dest="${mapping%%:*}"; source="${mapping#*:}"
+    if [ -f "$dest" ] && ! cmp -s "$dest" "$SRC/$source"; then
+      echo "  ✎ $dest — differs from the method (runtime replaced on reinstall; use --hooks / --ci for optional files)"
+    fi
+  done
+}
+
 install_target() {
   case "$1" in
     claude)
       copy_tooling_claude "./.claude"
       sync_templates "$SRC"; assemble_agents_md "$SRC"; warn_agents_local; wire_claude_md
+      copy_runtime
       echo "✅ zero-to-prod installed (Claude, project, version $VERSION). Commands: /ztp-setup … /ztp-ship" ;;
     codex)
       copy_tooling_codex "./.codex"
       sync_templates "$SRC"; assemble_agents_md "$SRC"; warn_agents_local   # AGENTS.md is native to Codex, no CLAUDE.md
+      copy_runtime
       echo "✅ zero-to-prod installed (Codex, project, version $VERSION). Skills: ztp-setup … ztp-ship in .codex/skills." ;;
     all)
       install_target claude
@@ -212,14 +254,17 @@ case "$MODE" in
   ""|--project)
     install_target "$TARGET"
     if [ "$HOOKS" = 1 ]; then install_hooks; fi
+    if [ "$INSTALL_CI" = 1 ]; then install_ci; fi
     ;;
 
   -g|--global)
     # Shared cache (templates + AGENTS.md + installer) for per-project `init`.
     seed_cache() {
       mkdir -p "$CACHE"
-      cp -R "$SRC/templates" "$CACHE/"
-      cp "$SRC/AGENTS.md" "$CACHE/"
+      # Keep a complete local payload: init/update with hooks must not fetch another version.
+      mkdir -p "$CACHE/src" "$CACHE/bin"
+      cp -R "$SRC/." "$CACHE/src/"
+      cp "$PAYLOAD_ROOT/bin/ztp-build.mjs" "$CACHE/bin/"
       cp "$PAYLOAD_ROOT/install.sh" "$CACHE/install.sh" 2>/dev/null \
         || cp "${BASH_SOURCE[0]:-$0}" "$CACHE/install.sh" 2>/dev/null || true
     }
@@ -235,7 +280,7 @@ case "$MODE" in
         echo "✅ Tooling installed (global Claude + Codex, version $VERSION)." ;;
       *) echo "Unknown target: $TARGET (claude|codex|all)" >&2; exit 1 ;;
     esac
-    echo "→ In each project: ~/.claude/zero-to-prod/install.sh init [--target codex] [--hooks]"
+    echo "→ In each project: ~/.claude/zero-to-prod/install.sh init [--target codex] [--hooks] [--ci]"
     ;;
 
   init)
@@ -243,19 +288,23 @@ case "$MODE" in
     # tooling already installed globally. That is the only difference with project mode.
     local_src="$SRC"; [ -d "$local_src/templates" ] || local_src="$CACHE"
     sync_templates "$local_src"; assemble_agents_md "$local_src"; warn_agents_local
+    copy_runtime
     case "$TARGET" in claude|all) wire_claude_md ;; esac   # CLAUDE.md only when Claude is a target
     echo "✅ templates + rules added to $(pwd) (target $TARGET)"
     if [ "$HOOKS" = 1 ]; then install_hooks; fi
+    if [ "$INSTALL_CI" = 1 ]; then install_ci; fi
     ;;
 
   update)
     install_target "$TARGET"
     echo "✅ zero-to-prod updated ($TARGET, version $VERSION). AGENTS.md rebuilt from the method's rules + your AGENTS.local.md."
     if [ "$HOOKS" = 1 ]; then install_hooks; fi
+    if [ "$INSTALL_CI" = 1 ]; then install_ci; fi
     ;;
 
   check)
     check_drift "./.claude" "$SRC" "Claude (.claude)"
+    check_runtime_drift
     # Codex: the install is transformed at build time, so it cannot be compared to the raw payload.
     # Regenerate the expected output and compare against that.
     if [ -d ./.codex ]; then
@@ -272,7 +321,7 @@ case "$MODE" in
 
   *)
     echo "Unknown option: $MODE" >&2
-    echo "Usage: ./install.sh [--target claude|codex|all] [--hooks] [--global | init | update] [--force]" >&2
+    echo "Usage: ./install.sh [--target claude|codex|all] [--hooks] [--ci] [--global | init | update] [--force]" >&2
     exit 1
     ;;
 esac

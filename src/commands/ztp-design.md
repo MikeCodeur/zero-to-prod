@@ -13,7 +13,7 @@ allowed-tools:
 
 Target story: $ARGUMENTS
 
-Resolve the story id, then locate its dedicated `.worktrees/<id>` worktree.
+Resolve the id using AGENTS.md, "Work sources", then locate its dedicated `.worktrees/<id>` worktree.
 Before any read or write, verify that it is on exactly `feature/<id>` and use
 that absolute path for the whole command. Missing worktree, wrong branch,
 detached HEAD or the repository base directory itself → STOP and run
@@ -55,7 +55,7 @@ the agent draws the screen itself, and that is a complete internal path, not a d
 Only the deliverable and the verification are fixed.
 
 ### Step 3 — Read the inputs
-Read `docs/stories.md` and isolate the target story's acceptance criteria.
+Read the resolved work source and isolate its acceptance criteria.
 
 Then read `docs/research/<id>.md`. **Research is the substance of this step, not a footnote.** It already established the real fields, the existing components, the anchor points and the traps. The screen's fields, actions and states are derived from it — not invented here. If research is missing, say so: the design will rest on assumptions rather than on the code.
 

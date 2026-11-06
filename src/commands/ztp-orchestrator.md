@@ -25,9 +25,9 @@ The orchestrator drives one story's cycle — it never replaces the framing. Che
 4. docs/reviews/stories.md says `Stories ready: yes`? If missing or negative, warn (don't stop): the breakdown hasn't passed /ztp-stories-review.
 (docs/design-system.md is not required here: Phase 2 fail-closes on it only when the story has UI.)
 
-Then resolve $ARGUMENTS to the story id (`s<number>-<slug>`) against docs/stories.md. No unambiguous match → list the available stories and stop. Never invent a framing doc or a story to keep going.
+Then resolve $ARGUMENTS using AGENTS.md, "Work sources" (story or `ticket:<reference>`). No unambiguous source → stop. Use its criteria, complexity and dependencies throughout; never invent framing or scope to keep going.
 
-**Then pick the track.** `Story track: full` → continue here. `flow` → hand over to `/ztp-flow <id>` and stop. `auto` → compare the story's complexity to `Flow threshold`: at or below it, and with no escalation signal visible in docs/stories.md (schema migration, genuinely new screen, authorization or tenant-scope change, API contract change, added dependency), hand over to `/ztp-flow <id>` and say why; above it, or on any signal, continue here and say which signal kept the story on the full pipeline. A story of complexity 1 does not need six cold contexts to read the same four documents — and one that migrates a schema does.
+**Then pick the track.** `Story track: full` → continue here. `flow` → hand over to `/ztp-flow` with the resolved id (or original ticket reference until its brief exists) and stop. `auto` → compare the source's complexity to `Flow threshold`: at or below it, and with no escalation signal (schema migration, genuinely new screen, authorization or tenant-scope change, API contract change, added dependency), hand over to `/ztp-flow` with that same input and say why; above it, or on any signal, continue here and say which signal kept the work on the full pipeline. A story of complexity 1 does not need six cold contexts to read the same four documents — and one that migrates a schema does.
 
 Bootstrap or verify the story's workspace exactly as AGENTS.md, "Where work happens",
 specifies, and perform every read and write there. Report the absolute path, the branch and

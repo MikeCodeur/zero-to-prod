@@ -24,6 +24,12 @@ two exact commit SHAs and the previous report, judge that correction diff under 
 `review-antihallu` scope rule. Preserve the report's Fix history; the caller owns budgets
 and the next action. Carry forward open findings and close them only with evidence.
 
+Also read `docs/review-rules.md` when present. Apply it only with
+`Review rules status: approved`, a named approver and date; a proposal is not active policy. Cite the applied rule
+ids in findings. Its report/ignore scopes supplement the generic checklist and cannot
+override the severity scale, conceal a critical, remove a proof or change a gate. A malformed
+active policy is missing review evidence: report it rather than inventing an interpretation.
+
 **You are read-only on the code: you judge, you don't fix.** The single exception is the
 temporary neutralization of step 4, restored and proven clean (`git diff --exit-code`) before
 you write the report. Bash is for git, running tests and inspection only.
