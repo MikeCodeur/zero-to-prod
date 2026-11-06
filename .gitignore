@@ -3,8 +3,14 @@
 .codex/
 .zero-to-prod/
 .ztp-hooks/
+.ztp-tools/
+.ztp-ci/
 /templates/
 /AGENTS.md
 /CLAUDE.md
 
 .DS_Store
+
+# Improvement reports quote private projects: keep them local
+/docs/improvements/*
+!/docs/improvements/README.md
