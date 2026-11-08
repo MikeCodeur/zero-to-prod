@@ -230,6 +230,25 @@ check_runtime_drift() {
   done
 }
 
+# Zone rules: .claude/rules/<zone>.md carries the detail, AGENTS.local.md only indexes it — the
+# index is what reaches Codex. Both sides are project files: report a gap, never write.
+check_zone_rules() {
+  local f name ref gaps=0
+  for f in ./.claude/rules/*.md; do
+    [ -f "$f" ] || continue
+    name="$(basename "$f")"
+    if [ ! -f ./AGENTS.local.md ] || ! grep -qF ".claude/rules/$name" ./AGENTS.local.md; then
+      echo "  ? .claude/rules/$name — not in \"Zone rules\" of AGENTS.local.md (Codex never sees it)"; gaps=1
+    fi
+  done
+  if [ -f ./AGENTS.local.md ]; then
+    while IFS= read -r ref; do
+      [ -f "./$ref" ] || { echo "  ✗ $ref — indexed in AGENTS.local.md, file missing"; gaps=1; }
+    done < <(grep -oE '\.claude/rules/[A-Za-z0-9_-]+\.md' ./AGENTS.local.md | sort -u)
+  fi
+  [ "$gaps" = 0 ] || echo "⚠  Zone rules: index and .claude/rules/ disagree — fix them in the project, not in the method."
+}
+
 install_target() {
   case "$1" in
     claude)
@@ -305,6 +324,7 @@ case "$MODE" in
   check)
     check_drift "./.claude" "$SRC" "Claude (.claude)"
     check_runtime_drift
+    check_zone_rules
     # Codex: the install is transformed at build time, so it cannot be compared to the raw payload.
     # Regenerate the expected output and compare against that.
     if [ -d ./.codex ]; then

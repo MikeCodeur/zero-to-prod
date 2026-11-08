@@ -12,7 +12,7 @@ allowed-tools:
 You are setting the product's technical architecture.
 
 Read: docs/prd.md, docs/stories.md, AGENTS.local.md
-Output structure: @templates/architecture.md, @templates/deployment.md, @templates/foundation-checklist.md
+Output structure: @templates/architecture.md, @templates/deployment.md, @templates/foundation-checklist.md, @templates/rule.md
 
 The PRD's "Starting point" decides the path: an **existing codebase** is mapped and conformed to; a **new project** gets a recommended stack and a foundation built here. Either way the phase ends on a foundation that has been verified, not assumed. The user does not need to be an architecture expert: on a new project you recommend and justify, they decide.
 
@@ -42,7 +42,7 @@ Go to Step 2.
 ## Step 3 — Profile, conventions and project commands
 1. Fill the architecture template from the analysis and the PRD needs.
 2. Write the **"Project profile"** block of `AGENTS.local.md` — `Product type`, `Target environment`, `UI check`, `E2E tool` — from the PRD and the stack. This is the one place the project's nature is settled: every later agent reads it instead of asking, and never proposes a tool it does not name. A product without a user interface gets `UI check: —`. Set `E2E targets` to match (browsers, devices, platforms, or `—`).
-3. Write the concrete conventions into `AGENTS.local.md`, under "Project conventions": structure, naming, patterns, error handling, data access, where tests go, commit rules. Written as rules an agent can apply ("one service file per domain in src/services"), not observations ("there are some services"). Keep them short: every agent context loads them.
+3. Write the concrete conventions into `AGENTS.local.md`, under "Project conventions": structure, naming, patterns, error handling, data access, where tests go, commit rules. Written as rules an agent can apply ("one service file per domain in src/services"), not observations ("there are some services"). Keep them short: every agent context loads them. What only one zone of the code needs goes into its zone rule (Step 6), not here.
 4. Complete the "Project commands" block in `AGENTS.local.md` with the commands that now exist — `Package manager`, `Test`, `Typecheck`, `E2E`, `Build`. Quote them from the repository; a command the project does not have stays `—`, never invented.
 
 ## Step 4 — Environments and deployment (once per project)
@@ -57,7 +57,21 @@ Write it to `docs/deployment.md`. Fill `Deploy`, `Smoke test` and `Rollback` in 
 ## Step 5 — Verify the foundation
 Run every item of @templates/foundation-checklist.md for real, using the project commands quoted verbatim, and record the result — command, exit code — in `docs/foundation.md`. On an existing codebase the checklist verifies what is there: a red item is reported, never silently fixed, and whether it blocks is the user's decision. On a new project every applicable item must be green before the phase ends: a foundation that does not build is not a foundation.
 
-## Step 6 — Commit
-Run `./install.sh --target <the targets this project uses>` so the conventions reach `AGENTS.md`. Commit the foundation, `docs/architecture.md`, `docs/deployment.md`, `docs/foundation.md`, the ADRs and `AGENTS.local.md` on the default branch (`chore: foundation` for the code, `docs: architecture` for the documents).
+## Step 6 — Architecture → rules
+Pose the minimal rules an agent applies when it touches one zone of the code, following @templates/rule.md. They are derived from the code mapped in Step 1 or Step 2 (item 5) — new project or existing codebase alike — never from the intention.
 
-End with: "Architecture ready, foundation verified (docs/foundation.md), deployment defined (docs/deployment.md). Next step: /ztp-design-system (products with a user interface), then /ztp-research <story>"
+1. **One zone per layer that exists in the code**: components, services, data access, tests… — six at most. A layer with no code yet gets no rule.
+2. **Each rule is a few imperative lines** an agent applies as is, followed by one `Anchor:` — a real file that follows the pattern. No anchor in the repository, no rule.
+3. **Only what is specific to this project.** Nothing already in `AGENTS.md` (the method's rules), in the `testing-doctrine` skill, or in "Project conventions": a tests rule says where tests go and which helpers they use, never how much to test.
+4. **On an existing codebase, the rule follows the dominant pattern.** The files that deviate from it are listed to the user, never fixed here.
+5. **Validate** (AskUserQuestion), all zones at once: Accept / Change a zone.
+6. **Write** one file per zone, `.claude/rules/<zone>.md`, whose `paths:` frontmatter scopes it to the zone's files. Patterns start with `**/` (`**/src/services/**`), so they also match inside `.worktrees/<id>/`. Claude Code loads a rule only when a matching file is read, in the main context and in the subagents alike.
+7. **Index** every rule in `AGENTS.local.md`, under "Project conventions" → "Zone rules": zone, the same `paths` as the frontmatter, the file, a one-line summary. The index is what reaches Codex through `AGENTS.md`; it reads the rule before editing the zone. The detail lives only in the rule file, the index only points to it — `./install.sh --check` reports a rule missing from the index and an index row without its file.
+8. If the project's `.gitignore` excludes `.claude/rules/`, STOP and ask: an ignored rule reaches no other clone.
+
+Record the result as item 13 of `docs/foundation.md`.
+
+## Step 7 — Commit
+Run `./install.sh --target <the targets this project uses>` so the conventions and the zone index reach `AGENTS.md`. Commit the foundation, `docs/architecture.md`, `docs/deployment.md`, `docs/foundation.md`, the ADRs, `.claude/rules/` and `AGENTS.local.md` on the default branch (`chore: foundation` for the code, `docs: architecture` for the documents and the rules).
+
+End with: "Architecture ready, foundation verified (docs/foundation.md), deployment defined (docs/deployment.md), zone rules posed (.claude/rules/). Next step: /ztp-design-system (products with a user interface), then /ztp-research <story>"
