@@ -21,4 +21,4 @@ Approved at: —
 <conflicting feedback or weak evidence requiring a tech-lead decision>
 
 > These rules supplement the generic checklist. They cannot suppress a critical defect,
-> change the severity scale, remove the neutralization proof or alter a gate.
+> change the severity scale, remove the freeze check or the neutralization spot check, or alter a gate.

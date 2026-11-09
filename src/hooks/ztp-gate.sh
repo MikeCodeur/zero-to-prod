@@ -7,6 +7,7 @@
 #   ztp-gate plan-validated <id>     exit 0 if docs/plans/<id>.md has `validated: yes`
 #   ztp-gate ship-allowed  <id>      exit 0 if docs/reviews/<id>.md has `Ship allowed: yes`
 #   ztp-gate verif-current <id>      exit 0 if docs/verif/<id>.md proves the CURRENT code was verified
+#   ztp-gate tests-frozen  <id>      exit 0 if the validated acceptance tests are unchanged since their test(<id>) commit
 #   ztp-gate pre-commit              block a code commit on feature/<id> or chore/<id> without a validated plan
 #
 # There is no push-time gate: /ztp-ship squash-merges, so a merged story leaves no merge
@@ -73,6 +74,35 @@ verif_current() {
   return 0
 }
 
+# The acceptance tests are committed alone as `test(<id>): acceptance tests`, then validated.
+# The commit is found in the history rather than stored by hand: one source of error fewer.
+# Its frozen files, listed in docs/tests/<id>.md, must be identical at HEAD.
+tests_frozen() {
+  local id="$1" root sha line; root="$(repo_root)"
+  local f="$root/docs/tests/$id.md"
+  [ -f "$f" ] || { echo "ztp-gate: no acceptance tests for '$id' (docs/tests/$id.md missing)." >&2; return 1; }
+  if ! grep -qE '^validated:[[:space:]]*yes[[:space:]]*$' "$f"; then
+    echo "ztp-gate: acceptance tests for '$id' are not validated (docs/tests/$id.md lacks 'validated: yes')." >&2
+    return 1
+  fi
+  sha="$(git -C "$root" log -1 --format=%H --fixed-strings --grep="test($id): acceptance tests" HEAD 2>/dev/null || true)"
+  [ -n "$sha" ] || { echo "ztp-gate: no 'test($id): acceptance tests' commit in the history." >&2; return 1; }
+  set --
+  while IFS= read -r line; do set -- "$@" "$line"; done < <(
+    awk '/^## /{inside=($0=="## Frozen files")} inside && /^- /{sub(/^- /,""); sub(/[ \t]+$/,""); print}' "$f")
+  [ "$#" -gt 0 ] || { echo "ztp-gate: docs/tests/$id.md lists no frozen files." >&2; return 1; }
+  for line in "$@"; do
+    git -C "$root" cat-file -e "$sha:$line" 2>/dev/null || {
+      echo "ztp-gate: frozen file '$line' is not in the test($id) commit ${sha:0:12}." >&2; return 1; }
+  done
+  if ! git -C "$root" diff --quiet "$sha" HEAD -- "$@"; then
+    echo "ztp-gate: frozen acceptance tests of '$id' changed since ${sha:0:12}:" >&2
+    git -C "$root" diff --name-status "$sha" HEAD -- "$@" >&2
+    return 1
+  fi
+  return 0
+}
+
 pre_commit() {
   local branch id; branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
   id="$(story_id_from_branch "$branch")"
@@ -100,9 +130,10 @@ case "$cmd" in
   plan-validated)  plan_validated "${2:?story id required}" ;;
   ship-allowed)    ship_allowed   "${2:?story id required}" ;;
   verif-current)   verif_current  "${2:?story id required}" ;;
+  tests-frozen)    tests_frozen   "${2:?story id required}" ;;
   pre-commit)      pre_commit ;;
   *)
-    echo "usage: ztp-gate {plan-validated <id>|ship-allowed <id>|verif-current <id>|pre-commit}" >&2
+    echo "usage: ztp-gate {plan-validated <id>|ship-allowed <id>|verif-current <id>|tests-frozen <id>|pre-commit}" >&2
     exit 2
     ;;
 esac

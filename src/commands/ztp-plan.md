@@ -45,7 +45,10 @@ two layers, and no adapter re-asserting an access refusal. Full rationale in the
 volume has repeatedly grown by dozens of tests per story while the central
 invariant shipped with no net at all.
 
-3. Anticipate the touched files and the test strategy. Test each invariant at
+3. Map every acceptance criterion to exactly one test in the plan's "Acceptance tests" table —
+   criterion id, test file and name, layer — or to its `UI check` for a purely visual
+   criterion. That table is what the implementer writes first and what the test review checks.
+   Anticipate the touched files and the test strategy. Test each invariant at
    the closest valuable layer and avoid proving the same behavior again in
    every caller. Explicitly separate automated behavior tests from visual
    verification. If the story is scored complexity 5, or the plan grows past

@@ -27,8 +27,19 @@ Research: `docs/research/<id>.md` — read it first; this plan does not repeat i
 ## Files touched
 <anticipated list>
 
+## Acceptance tests
+<One row per acceptance criterion: exactly one test, at the layer where its rule lives, or its
+ `UI check` for a purely visual criterion. Written first, proven red, reviewed and frozen
+ before any code. Within `Test budget` from AGENTS.local.md; a plan that wants more says why.>
+
+| Criterion | Test (file › name) | Layer |
+|---|---|---|
+| AC1 | <file › AC1 — …> | <service, repository mocked> |
+| AC2 | <file › AC2 — …> | <DAO, real database> |
+| AC3 | <spec › AC3 — …> | <end-to-end — the story's only one> |
+
 ## Test strategy
-<what to test, at what level>
+<what else is checked, and how: visual checks, regressions to watch>
 
 ## Definition of Done
 <repo DoD, specialized to the story>

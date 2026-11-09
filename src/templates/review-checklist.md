@@ -52,8 +52,9 @@ If blocked, do not leave this implicit:
 
 ## Tests
 - [ ] Verification record checked (`ztp-gate verif-current <id>`): <current, taken as proof | stale/missing → suite and type check re-run here>
-- [ ] Assertions pin the acceptance criteria (no assertion-free tests)
-- [ ] Bite proven by neutralization: <what was neutralized> → <N> tests red, restored (`git diff --exit-code` clean)
+- [ ] Freeze held: `ztp-gate tests-frozen <id>` green — no frozen test edited, skipped or deleted
+- [ ] One test per acceptance criterion, named by its id (no assertion-free tests)
+- [ ] Spot check: <invariant neutralized> → <N> tests red, restored (`git diff --exit-code` clean)
 - [ ] Tests the story made redundant are named and removed — or their absence justified
 
 ## Regressions

@@ -43,7 +43,7 @@ Go to Step 2.
 1. Fill the architecture template from the analysis and the PRD needs.
 2. Write the **"Project profile"** block of `AGENTS.local.md` — `Product type`, `Target environment`, `UI check`, `E2E tool` — from the PRD and the stack. This is the one place the project's nature is settled: every later agent reads it instead of asking, and never proposes a tool it does not name. A product without a user interface gets `UI check: —`. Set `E2E targets` to match (browsers, devices, platforms, or `—`).
 3. Write the concrete conventions into `AGENTS.local.md`, under "Project conventions": structure, naming, patterns, error handling, data access, where tests go, commit rules. Written as rules an agent can apply ("one service file per domain in src/services"), not observations ("there are some services"). Keep them short: every agent context loads them. What only one zone of the code needs goes into its zone rule (Step 6), not here.
-4. Complete the "Project commands" block in `AGENTS.local.md` with the commands that now exist — `Package manager`, `Test`, `Typecheck`, `E2E`, `Build`. Quote them from the repository; a command the project does not have stays `—`, never invented.
+4. Complete the "Project commands" block in `AGENTS.local.md` with the commands that now exist — `Package manager`, `Test`, `Test focused`, `Typecheck`, `E2E`, `Build`. Quote them from the repository; a command the project does not have stays `—`, never invented.
 
 ## Step 4 — Environments and deployment (once per project)
 Define how the product reaches production, following @templates/deployment.md, and ask what the repository cannot answer (AskUserQuestion):
@@ -62,7 +62,7 @@ Pose the minimal rules an agent applies when it touches one zone of the code, fo
 
 1. **One zone per layer that exists in the code**: components, services, data access, tests… — six at most. A layer with no code yet gets no rule.
 2. **Each rule is a few imperative lines** an agent applies as is, followed by one `Anchor:` — a real file that follows the pattern. No anchor in the repository, no rule.
-3. **Only what is specific to this project.** Nothing already in `AGENTS.md` (the method's rules), in the `testing-doctrine` skill, or in "Project conventions": a tests rule says where tests go and which helpers they use, never how much to test.
+3. **Only what is specific to this project.** Nothing already in `AGENTS.md` (the method's rules), in the `testing-doctrine` skill, or in "Project conventions": a tests rule says where each layer's tests go (service with the repository mocked, DAO on the real database, the story's end-to-end), the mock and fixture helpers they use, how a test names its criterion (`AC1 — …`), and the `Test focused` form — never how much to test.
 4. **On an existing codebase, the rule follows the dominant pattern.** The files that deviate from it are listed to the user, never fixed here.
 5. **Validate** (AskUserQuestion), all zones at once: Accept / Change a zone.
 6. **Write** one file per zone, `.claude/rules/<zone>.md`, whose `paths:` frontmatter scopes it to the zone's files. Patterns start with `**/` (`**/src/services/**`), so they also match inside `.worktrees/<id>/`. Claude Code loads a rule only when a matching file is read, in the main context and in the subagents alike.

@@ -90,7 +90,7 @@ Per story: `/ztp-research` → `/ztp-design` (UI only) → `/ztp-plan` → `/ztp
 
 Short track: **`/ztp-flow`** runs that same cycle in three contexts instead of six — research
 and plan fused in one pass, then the same `implementer`, the same fresh-context `reviewer`,
-the same ship. Nothing is relaxed: dedicated worktree, validated plan, neutralization proof,
+the same ship. Nothing is relaxed: dedicated worktree, validated plan, frozen acceptance tests, neutralization spot check,
 `Ship allowed` gate, test budget.
 
 Utilities: `/ztp-orchestrator` (the whole cycle, with the two human checkpoints),
@@ -230,10 +230,14 @@ a parallel state database. An inaccessible external source is unverified, never 
 - Change intake — `docs/intents/` on the target branch; corrective briefs in `docs/tickets/` travel with their work branch. `docs/ops/` reports stay in the repository base after ship cleanup.
 - Document size — research ~200 lines, plan ~250, review ~150. Every downstream agent reads these files and pays for their length. Cap the prose, never the decision tables: what carries decisions stays whole.
 - Task progress — the checkboxes in docs/plans/<id>.md: the implementer ticks each task as it lands, and they travel in the story's commit. The plan file is the live progress tracker, never a commit trigger.
-- Commits — **one commit per story**, not one per plan task. A second commit only for something you would want to revert on its own (typically a migration). The branch's commits are squashed at merge, so the default branch gets one commit per story.
+- Commits — **one commit per story**, preceded on the branch by its frozen acceptance-test commit (`test(<id>): acceptance tests`), not one per plan task. A second commit only for something you would want to revert on its own (typically a migration). The branch's commits are squashed at merge, so the default branch gets one commit per story.
 - Decisions — docs/decisions/NNN-<slug>.md (MADR format, @templates/adr.md): one file per structural decision, with the considered options and why they were rejected. Immutable: a change means a new ADR superseding the old one. Framing decisions commit on the default branch; story decisions travel with feature/<id>.
 
 ## Testing
+
+**Acceptance tests first.** One test per acceptance criterion, proven red on its assertion,
+reviewed per `Test validation`, then frozen: the code phase never edits a frozen test, and a
+test believed wrong stops the work. Each rule is still tested once, at the layer where it lives.
 
 **Budget: `Test budget` (25 by default); a story needing more says why in its plan.** Volume
 is not a net, and a suite that takes half an hour is a suite nobody runs. **The criterion
@@ -247,7 +251,8 @@ the production build once at ship, never inside the cycle. Stages are settings:
 `Full suite`, `E2E stage`, `E2E scope`, `E2E smoke`, `E2E targets`, `Build stage`.
 
 Where the tests go, the four cuts, the six shapes of a test that names an invariant without
-exercising it, and the neutralization technique: the `testing-doctrine` skill, preloaded in
+exercising it, the red run, the freeze and the review's neutralization spot check: the
+`testing-doctrine` skill, preloaded in
 the `implementer` and the `reviewer`.
 
 ## Technical conventions

@@ -34,13 +34,30 @@ be a story. One commit, with the prefix that fits the work (`docs:`, `test:`, `c
 If you were given a review report: read it whole and make a checklist of **every open finding
 and every unimplemented plan task**. Close all of them in this run — never only the newest or
 the highest-severity one — and record each correction with its focused verification. Criticals
-and majors come before any remaining plan task. If the end-to-end runner stays unstable after one
+and majors come before any remaining plan task. A finding that targets a frozen test is not
+yours to fix: report it — it returns to test review. If the end-to-end runner stays unstable after one
 stabilization attempt, verify the same local flow with the tool `UI check` names; documented
 local test accounts are pre-authorized, real accounts and secrets never are.
 
+## Tests mode — when the caller says `mode: tests`
+
+1. Write one test per acceptance criterion, as the plan's "Acceptance tests" table maps them,
+   plus the skeletons they call — signatures returning a neutral value, no logic.
+2. Run the new files with `Test focused`. Each must fail on its assertion; an import, syntax or
+   setup failure is fixed in the test or the skeleton, never accepted as red.
+3. Write `docs/tests/<id>.md` (templates/acceptance-tests.md) with `validated: no` and the
+   frozen files, and commit it with the tests and skeletons, alone:
+   `test(<id>): acceptance tests`. Stop there — no production code.
+
+## Code mode — only once docs/tests/<id>.md says `validated: yes`
+
+The files listed under "Frozen files" in docs/tests/<id>.md are read-only for you: never edit,
+rename, skip, loosen or delete them. A frozen test you believe wrong: stop and report
+`Test contested: <file › name> — <why>`. Never work around it.
+
 ## The loop, task by task, in plan order
 
-1. Write the task as a whole block, then run its focused suite.
+1. Write the task as a whole block, then run `Test focused` on the test files concerned.
 2. Tick the task's checkbox in `docs/plans/<id>.md`. **Do NOT commit** — the plan tracks
    progress, it does not trigger commits.
 
@@ -58,7 +75,7 @@ task that ships one — every defect that made a feature not work at all was fou
    is what lets the review trust your run instead of replaying it; `ztp-gate verif-current
    <id>` checks it against the commit. Never record a run you did not make: the gate compares
    trees, but only you can make the file honest.
-4. **One single commit for the whole story**, tests green, carrying the story docs (research,
+4. **One single commit for the code of the story**, on top of the frozen test commit, tests green, carrying the story docs (research,
    design, the plan with its checkboxes, the verification record) and the code of every task.
    A plan of nine tasks does not make nine commits. Split only for something you would want
    to revert on its own, typically a migration.

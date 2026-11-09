@@ -53,7 +53,9 @@ CHECKPOINT — per `Plan validation`. If the plan's frontmatter already says `va
 ## Phase 4 — Execute
 Fail-closed: docs/plans/<id>.md must carry `validated: yes` — missing means back to the Phase 3
 checkpoint. Then delegate to the `implementer` subagent **exactly as /ztp-execute does**, with
-the verified absolute worktree as its working directory. Its prerequisites and correction
+the verified absolute worktree as its working directory — its Step 2 included: acceptance
+tests, their review per `Test validation` (a third AskUserQuestion checkpoint when `human`),
+then the code. Its prerequisites and correction
 bookkeeping apply in full, including the shared Fix policy and reservation of one attempt.
 On resume, `review` goes to Phase 5, `none` to Phase 6, and `stop` stops; never replay the
 initial implementation or reset history. Its definition is its contract; capture its summary.

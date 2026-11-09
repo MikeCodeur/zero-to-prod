@@ -194,6 +194,48 @@ class Repository(unittest.TestCase):
         self.assertIn("Zone rules: index and .claude/rules/ disagree", result.stdout)
         self.assertFalse((rules / "services.md").exists())
 
+    def frozen_tests_fixture(self, validated="yes", commit_message="test(s01-book): acceptance tests"):
+        tests = self.root / "tests"
+        tests.mkdir(exist_ok=True)
+        (tests / "booking.test.ts").write_text("test('AC1 — refuses a past date', () => {})\n")
+        record = self.root / "docs/tests/s01-book.md"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text("---\nvalidated: no\n---\n## Frozen files\n- tests/booking.test.ts\n\n## Findings\n")
+        self.run_command("git", "add", ".")
+        self.run_command("git", "-c", "core.hooksPath=/dev/null", "commit", "-qm", commit_message)
+        record.write_text(record.read_text().replace("validated: no", "validated: " + validated))
+        (self.root / "src.ts").write_text("export const ok = true\n")
+        self.commit()
+        return tests / "booking.test.ts"
+
+    def gate(self, *args, expected=0):
+        return self.run_command("bash", str(METHOD / "src/hooks/ztp-gate.sh"), *args, expected=expected)
+
+    def test_tests_frozen_passes_when_code_lands_after_untouched_tests(self):
+        self.frozen_tests_fixture()
+        self.gate("tests-frozen", "s01-book")
+
+    def test_tests_frozen_blocks_a_test_edited_or_deleted_after_validation(self):
+        frozen = self.frozen_tests_fixture()
+        frozen.write_text("test.skip('AC1 — refuses a past date', () => {})\n")
+        self.commit()
+        result = self.gate("tests-frozen", "s01-book", expected=1)
+        self.assertIn("tests/booking.test.ts", result.stderr)
+        frozen.unlink()
+        self.commit()
+        self.gate("tests-frozen", "s01-book", expected=1)
+
+    def test_tests_frozen_requires_validation_and_the_test_commit(self):
+        self.frozen_tests_fixture(validated="no")
+        self.assertIn("not validated", self.gate("tests-frozen", "s01-book", expected=1).stderr)
+        record = self.root / "docs/tests/s01-book.md"
+        record.write_text(record.read_text().replace("validated: no", "validated: yes"))
+        self.commit()
+        self.gate("tests-frozen", "s01-book")
+        (self.root / "docs/tests/s02-x.md").write_text("---\nvalidated: yes\n---\n## Frozen files\n- tests/booking.test.ts\n")
+        self.commit()
+        self.assertIn("no 'test(s02-x): acceptance tests' commit", self.gate("tests-frozen", "s02-x", expected=1).stderr)
+
     def test_hooks_preserve_settings_and_prior_hooks_idempotently(self):
         old = self.root / "custom-hooks"
         old.mkdir()
