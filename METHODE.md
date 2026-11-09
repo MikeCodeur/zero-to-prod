@@ -41,6 +41,8 @@ and git; no parallel state database is maintained.
 
 Either way, the conventions are written as rules the development agents can apply, and the **environments and the deployment** are defined once in `docs/deployment.md`: production (and staging if it exists), what triggers a deployment, the smoke test, the rollback procedure and what it does not undo. The phase ends with an **executed checklist** (`docs/foundation.md`): install, example test, type check, lint, build, start in the target environment, secrets kept out of the repository, commands and conventions true to the code. On a new project every applicable item must be green.
 
+Then **architecture → rules**: from the code just verified or mapped — never from the intention — the agent poses one minimal rule per zone that exists (components, services, data access, tests…): a few imperative lines and one real file as an anchor, nothing the method's rules already say. Under Claude Code each rule is a `.claude/rules/<zone>.md` scoped by `paths:`, loaded only when an agent touches that zone. Codex loads no nested `AGENTS.md` below its working directory, so it gets an index instead: `AGENTS.local.md` lists each zone, its paths and its rule file, and reaches Codex through `AGENTS.md`. The detail lives only in the rule, the index only points to it, and `install.sh --check` reports any gap between the two.
+
 ## 3. La boucle
 
     New product change → Intent → Stories → Existing cycle → Ship → Ops

@@ -157,3 +157,11 @@ command/script must be trusted and outside the replay; use `ZTP_EVAL_SOURCE` to 
 ## Project conventions
 
 << structure, stack, patterns, naming, commit rules — filled by /ztp-architect, as rules an agent can apply >>
+
+### Zone rules
+
+<< written by /ztp-architect, Step 6 — the detail lives only in the rule file; this table points to it, with the same `paths` >>
+
+| Zone | Paths | Rule | Summary |
+|---|---|---|---|
+| << zone >> | `<< **/src/… /** >>` | .claude/rules/<< zone >>.md | << one line >> |

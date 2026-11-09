@@ -14,3 +14,4 @@
 # Improvement reports quote private projects: keep them local
 /docs/improvements/*
 !/docs/improvements/README.md
+__pycache__/

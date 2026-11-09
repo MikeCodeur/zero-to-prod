@@ -19,7 +19,7 @@ an intent**. Chore and Quick Fix need no intent. Bugs never inflate the product 
 2. /ztp-stories           — breaks it into user stories shippable end to end
 3. /ztp-stories-review    — reviews the breakdown against the PRD perimeter (fresh context)
 4. /ztp-architect         — stack (recommended, validated, ADR), verified foundation, conventions,
-                            environments and deployment
+                            environments and deployment, zone rules (.claude/rules/)
 5. /ztp-design-system     — captures the global design system (products with a user interface only)
 
 ## Per story (one feature = one cycle = one branch = one PR)

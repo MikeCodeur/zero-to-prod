@@ -18,6 +18,7 @@
 | 10 | "Project profile" in AGENTS.local.md is filled — product type, target environment, UI check, E2E tool | — | <yes / no> |
 | 11 | Every structural choice has an ADR in docs/decisions/ | — | <list> |
 | 12 | docs/deployment.md defines production, the trigger, the smoke test and the rollback | — | <yes / open points> |
+| 13 | Zone rules posed in .claude/rules/ (Step 6): each derived from the code with an existing anchor, indexed under "Zone rules" with the same paths, consistent with "Project conventions" | `./install.sh --check` | <zones · n/a and why> |
 
 ## Red items
 <each red item: what failed, the error, and — on an existing codebase — the user's decision on whether it blocks>

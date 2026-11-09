@@ -164,6 +164,36 @@ class Repository(unittest.TestCase):
         result = self.install("all", "--check")
         self.assertNotIn("modified locally (will be overwritten", result.stdout)
 
+    def test_zone_rules_survive_every_install_and_are_not_drift(self):
+        rules = self.root / ".claude/rules"
+        rules.mkdir(parents=True)
+        rule = rules / "services.md"
+        rule.write_text('---\npaths:\n  - "**/src/services/**"\n---\n- One file per domain.\n')
+        self.values["Zone rules"] = "| services | `**/src/services/**` | .claude/rules/services.md | domain |"
+        self.write_settings()
+        content = rule.read_bytes()
+        for args in (("claude",), ("codex",), ("all",), ("all", "update")):
+            with self.subTest(args=args):
+                self.install(*args)
+                self.assertEqual(rule.read_bytes(), content)
+        self.assertIn(".claude/rules/services.md", (self.root / "AGENTS.md").read_text())
+        result = self.install("all", "--check")
+        self.assertNotIn("rules/services.md", result.stdout)
+        self.assertNotIn("Zone rules:", result.stdout)
+
+    def test_check_reports_unindexed_rule_and_orphan_index_row(self):
+        rules = self.root / ".claude/rules"
+        rules.mkdir(parents=True)
+        (rules / "data.md").write_text('---\npaths:\n  - "**/src/data/**"\n---\n- Only layer that imports db.\n')
+        self.values["Zone rules"] = "| services | `**/src/services/**` | .claude/rules/services.md | domain |"
+        self.write_settings()
+        self.install("claude")
+        result = self.install("claude", "--check")
+        self.assertIn(".claude/rules/data.md — not in", result.stdout)
+        self.assertIn(".claude/rules/services.md — indexed in AGENTS.local.md, file missing", result.stdout)
+        self.assertIn("Zone rules: index and .claude/rules/ disagree", result.stdout)
+        self.assertFalse((rules / "services.md").exists())
+
     def test_hooks_preserve_settings_and_prior_hooks_idempotently(self):
         old = self.root / "custom-hooks"
         old.mkdir()

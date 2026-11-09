@@ -252,7 +252,9 @@ the `implementer` and the `reviewer`.
 
 ## Technical conventions
 In `AGENTS.local.md`, under "Project conventions" — filled by `/ztp-architect` from the codebase,
-existing or just built.
+existing or just built. What one zone of the code needs lives in `.claude/rules/<zone>.md`,
+indexed under "Zone rules": read a zone's rule before editing a file under its paths. These are
+project files — `install.sh` never replaces them.
 
 ## Never edit an installed file
 A command, an agent or a skill under `.claude/` or `.codex/` is **replaced without warning** on
