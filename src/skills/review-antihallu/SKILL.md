@@ -44,6 +44,11 @@ verified fact of the research, or an accepted ADR in `docs/decisions/`, is a fin
 
 **4. Read the tests like production code.**
 
+*Check the freeze.* `ztp-gate tests-frozen <id>` must pass — or, without the gate installed:
+`git log -1 --format=%H --fixed-strings --grep='test(<id>): acceptance tests'`, then
+`git diff --quiet <that sha> HEAD -- <the frozen files of docs/tests/<id>.md>`. A frozen test edited, skipped,
+loosened or deleted after validation is **critical**, whatever the reason given.
+
 *Judge the net.* Look for a test that names an invariant without exercising it. Check the
 FIXTURES and the mock doubles, not only the assertions — a fixture whose identifier lets a
 downstream guard answer for the guard under test, or a double that replays a clause instead of
@@ -59,8 +64,9 @@ viewports, devices, routes), a selector on copy that can change, a scenario a un
 covers, an edit to another story's spec the record does not justify — each a minor finding,
 named with its `file:line`.
 
-*Prove the bite.* Pick the one or two invariants the story turns on (a guard, predicate, state
-transition or query clause) and neutralize them: invert the condition, return the opposite
+*Spot-check the bite.* The acceptance tests were proven red and frozen before the code — that
+is the main guarantee. Pick the one invariant the story turns on (a guard, predicate, state
+transition or query clause) and neutralize it once: invert the condition, return the opposite
 constant, drop the clause. **Run only the test files that name that invariant — never the
 whole suite**: a neutralized guard turns red where it is tested, and replaying the project to
 learn it is the most expensive habit a review can have. COUNT the red tests, then restore and

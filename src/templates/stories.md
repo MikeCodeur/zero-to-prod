@@ -12,8 +12,8 @@ Source: <docs/prd.md or docs/intents/<id>.md; canonical revision when tracker-ba
 <1-5, PRD scale. 4 → call out the risk in the agentic notes. 5 → split before planning.>
 
 ### Acceptance criteria
-- [ ] <verifiable criterion — must be able to become a test>
-- [ ] <verifiable criterion — must be able to become a test>
+- [ ] AC1 — <verifiable criterion — becomes exactly one test>
+- [ ] AC2 — <verifiable criterion — becomes exactly one test>
 
 ### Dependencies
 <stories or elements required before>

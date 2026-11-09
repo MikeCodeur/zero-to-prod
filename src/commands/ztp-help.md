@@ -39,7 +39,7 @@ always blocks; unresolved majors stay traced, and minors alone never reopen a lo
 ## Short track — small stories
 /ztp-flow <story>         — the same cycle in 3 contexts instead of 6: research and plan fused in
 one pass, then the implementer subagent, then the reviewer in a fresh context, then ship. Nothing
-is relaxed — worktree, validated plan, neutralization proof, gate.
+is relaxed — worktree, validated plan, frozen acceptance tests, review spot check, gate.
 For a complexity ≤ `Flow threshold`. Migration, genuinely new screen, authorization, API contract
 or added dependency → escalate to the full pipeline, even mid-flight.
 

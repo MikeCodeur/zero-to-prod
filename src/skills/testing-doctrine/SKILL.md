@@ -1,6 +1,6 @@
 ---
 name: testing-doctrine
-description: What to test, where, how much, and when to run it. Preloaded in the implementer and the reviewer; the rest of the pipeline does not need it.
+description: Acceptance tests first — one per criterion, red for the right reason, reviewed, frozen — then what to test where, how much, and when to run it. Preloaded in the implementer and the reviewer; the rest of the pipeline does not need it.
 ---
 # Testing doctrine
 
@@ -15,6 +15,25 @@ those stories still ship their central invariant with no net at all** — every 
 mutation during review, none by the volume. The number does not measure the net. It buys false confidence, and it is
 slow: a suite that takes half an hour to run is a suite nobody runs.
 
+**The cycle: acceptance tests first, then the code.**
+
+1. **One test per acceptance criterion** — not one per function. Its name carries the
+   criterion's id (`AC2 — refuses a booking outside opening hours`), and it lives at the layer
+   where the rule lives (table below). A purely visual criterion names its `UI check` instead.
+2. **Red for the right reason.** Run the new files with `Test focused`: each fails on its
+   assertion — never on an import, a syntax error, a missing fixture or a crashed setup. Write
+   only skeletons to get there: the signatures the tests call, returning a neutral value
+   (`null`, an empty list, `false`), no logic. Without them the test fails on a missing import,
+   and that red proves nothing.
+3. **Reviewed before any code**, per `Test validation`. The six hollow shapes below are
+   cheaper to catch now than after the code makes them green.
+4. **Frozen once validated.** The tests are committed alone (`test(<id>): acceptance tests`);
+   `docs/tests/<id>.md` lists the frozen files. During the code phase no frozen file is edited,
+   renamed, skipped, loosened or deleted. A test you believe wrong: stop and report it — it goes
+   back to review, it is never fixed in passing.
+5. **Code until green**, running only the test files concerned. The full suite runs once, at
+   the stage `Full suite` sets.
+
 **Which tools** — the ones `AGENTS.local.md` names: `E2E tool`, `UI check` and the project
 commands. Never propose another, and never a web tool on a product whose `Target environment`
 is not a browser.
@@ -23,11 +42,14 @@ is not a browser.
 
 | Layer | What to test |
 | --- | --- |
-| Business/service layer and its authorization | Everything that matters. The **role or permission matrix belongs to the policy test, written once** — a service command invents no access rule, it calls the policy. The service test then covers the **business rule**: one nominal case, one refusal per rule it owns. |
-| Persistence | Only what no reading catches: the idempotency ordering of a retryable mutation, and the tenant/ownership clause of each query. Call the repository **directly** — the service refuses upstream, so an applicative call never reaches the guard. |
+| Business/service layer and its authorization | Everything that matters, **with the repository mocked**. The **role or permission matrix belongs to the policy test, written once** — a service command invents no access rule, it calls the policy. The service test then covers the **business rule**: one nominal case, one refusal per rule it owns. |
+| Persistence (DAO / repository) | **The only tests on a real database.** Only what no reading catches: the idempotency ordering of a retryable mutation, and the tenant/ownership clause of each query. Call the repository **directly** — the service refuses upstream, so an applicative call never reaches the guard. |
 | Adapter (HTTP route, controller, CLI command, message handler, screen action) | Only what the service does not do: payload parsing, field clearing, status mapping. **An adapter never re-tests an access refusal** — it verifies once that a refusal becomes the adapter's refusal response (a 403, an error code, a message), never per role and never per rule. |
 | Component / view | Almost none. Only genuine conditional logic of its own; rendering a list is not a rule. |
 | End-to-end | One scenario, for what unit tests structurally cannot see — typically a side effect written inside a transaction, which mocked repositories hide. The rules below. |
+
+Most tests are unit or service tests with a mocked repository; a real database for DAOs only;
+one end-to-end per story.
 
 **End-to-end, specifically**
 
@@ -61,16 +83,13 @@ examples are a web app's — find the equivalent for yours.
 3. **Never the same rule at two layers.** Pick the layer where the rule lives.
 4. **No adapter re-asserting an access refusal.**
 
-**No red-first ceremony, and no invariant mutations in implementation.** Do not write a
-failing test to watch it fail, and do not neutralize a guard to confirm a test goes red.
-Write the code as whole blocks, write the tests that belong to it, run them. Measured:
-repeated mutations across a story and its fix pass, each costing a full suite run plus a
-restore plus another run, and **zero findings** — the author who just wrote the test
-already knows it passes. It verifies the tests, not the code.
+**The guarantee now sits upstream.** Each criterion has a test, proven able to fail, reviewed
+before the code, and frozen so the code cannot bend it to pass. The implementer neutralizes
+nothing: the red run already proved each test can fail.
 
-**The same technique stays in review, and there it earns its place.** Run in fresh context
-on someone else's net, it found a critical, six majors, and — repeatedly — an invariant with
-no test at all. The safety moves downstream to where it works; it is not dropped.
+**Neutralization in review becomes a spot check**, not the main proof: the reviewer
+neutralizes the one invariant the story turns on, on its own test files. Zero red is still a
+finding — it means the frozen test passed review without exercising the rule.
 
 **The failure mode this pipeline keeps producing: a test that names an invariant without
 exercising it.** Most stories ship one. Six shapes seen repeatedly, worth citing
@@ -95,7 +114,8 @@ setting in `AGENTS.local.md`.
 
 | Run | When | Setting |
 | --- | --- | --- |
-| Focused suite | after each task — the working loop. Target the task's own test files, never the whole project | — |
+| Acceptance tests, red | **once, before any code** — the new test files only, to prove each fails on its assertion | `Test focused` |
+| Focused suite | after each task — the working loop. Only the test files concerned, through `Test focused`, never the whole project; frozen files are run, never edited | `Test focused` |
 | Full suite | **once**, after the last task | `Full suite` |
 | Type check | **once at the very end, after the last edit, and not optional** — most runners transpile without checking types and most linters do not type, so a type error in a test file passes lint, passes the suite, and fails CI | — |
 | End-to-end | **once, at ship, just before the merge** — never in the loop, never twice: a run costs a cold start, a migration, a seed and a browser, device or platform driver. At ship it is the story's own specs plus `E2E smoke`; the whole suite belongs to CI | `E2E stage` · `E2E scope` · `E2E smoke` · `E2E targets` |
@@ -108,6 +128,6 @@ test, and the compiler is the type check. `Typecheck` is then the compile step �
 binary, package or bundle. The stages do not change: focused tests per task, full suite once,
 release build once at ship.
 
-**The reviewer's mutations run on the invariant's own test files, not on the suite.** A
+**The reviewer's spot check runs on the invariant's own test files, not on the suite.** A
 neutralized guard turns red in the one or two files that name it; replaying the whole
 project to learn that is the single most expensive habit this pipeline ever had.

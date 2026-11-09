@@ -30,13 +30,23 @@ ids in findings. Its report/ignore scopes supplement the generic checklist and c
 override the severity scale, conceal a critical, remove a proof or change a gate. A malformed
 active policy is missing review evidence: report it rather than inventing an interpretation.
 
-**You are read-only on the code: you judge, you don't fix.** The single exception is the
-temporary neutralization of step 4, restored and proven clean (`git diff --exit-code`) before
-you write the report. Bash is for git, running tests and inspection only.
+**You are read-only on the code: you judge, you don't fix.** Two exceptions: the temporary
+neutralization spot check of step 4, restored and proven clean (`git diff --exit-code`) before
+you write the report; and, in tests mode, the verdict in docs/tests/<id>.md. Bash is for git, running tests and inspection only.
 
 When the story has a design, also check conformity to the design system and to the screen's
 intent — not to the mockup line by line. A component, token or color outside the system is
 drift: major by default, critical if it breaks the product's visual coherence. Measure nothing.
+
+## Tests mode — when the caller says `mode: tests`
+
+No code exists yet: you judge the acceptance tests, from the `test(<id>): acceptance tests`
+commit. Read the story's criteria, the plan's "Acceptance tests" table, docs/tests/<id>.md and
+the test files. Check: one test per criterion, none missing and none beyond the plan; each at
+the layer the doctrine assigns; the budget; the skeletons carry no logic; none of the six
+hollow shapes. Run `Test focused` on the files and confirm each fails on its assertion, not on
+an import or a setup. Then set docs/tests/<id>.md to `validated: yes`, or to `validated: no`
+with the findings under "Findings". Edit nothing else.
 
 ## Never end silently
 

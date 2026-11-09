@@ -19,7 +19,7 @@ This track runs the same cycle in three: you research and plan in one pass, the
 `implementer` builds, the `reviewer` judges in fresh context, and it ships.
 
 **Nothing is relaxed.** The dedicated worktree, the validated plan, the fresh-context review
-with its neutralization proof, the rendered-screen pass, the `Ship allowed` gate and the test budget
+with its frozen acceptance tests and neutralization spot check, the rendered-screen pass, the `Ship allowed` gate and the test budget
 all hold exactly as on the full track. What disappears is repetition, not verification —
 if you find yourself dropping a check to go faster, you are on the wrong track: stop and
 escalate.
@@ -89,6 +89,7 @@ scope and establish the facts **before** writing a single task:
    that can fail; a purely presentational task names its visual check (per `UI check`) plus lint and typecheck
    instead — never a manufactured component test. `Test budget` from AGENTS.local.md; a plan
    that wants more says why. Where the tests go is settled in the `testing-doctrine` skill.
+   Map every acceptance criterion to exactly one test in the "Acceptance tests" table.
 6. Past roughly six tasks, the story is not small: say so and suggest `/ztp-orchestrator <id>`
    rather than growing a short-track plan into a long one.
 7. Write `docs/plans/<id>.md`, frontmatter `validated: no` and `track: flow`. **Cap it at
@@ -106,7 +107,7 @@ Write no code in this phase.
 ## Phase 3 — Execute (delegated)
 
 Run `/ztp-execute`'s contract in the absolute worktree verified in Phase 1: validated plan,
-same implementer, and the plan's "Verified facts" as research. On a correction, apply
+acceptance tests written, reviewed per `Test validation` and frozen before any code, same implementer, and the plan's "Verified facts" as research. On a correction, apply
 `/ztp-review`, "Fix policy", and reserve exactly one attempt before delegating. On resume,
 `review` goes straight to Phase 4, `none` to Phase 5, and `stop` stops; never replay the
 initial implementation or reset history. Capture the implementer's summary and blockers.

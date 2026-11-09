@@ -89,8 +89,8 @@ One story = one `feature/<id>` branch = one dedicated worktree = one PR = one co
 | **Research** | main agent | The real state of the code, not the one the docs describe. Checks the story's **premise**: a function that exists but fails on the story's case invalidates the story. Re-scores complexity. |
 | **Design** | main agent | Screens derived from the design system, nothing invented. An existing screen changed: a list of deltas, no mockup. A new screen: exactly one mockup, rendered and looked at in the target environment. |
 | **Plan** | main agent | Small verifiable tasks, the story's interdicts, the point everything turns on, the test strategy. Validated by a human or by the agent per the settings; `validated: yes` conditions execution. |
-| **Execute** | `implementer` subagent | Task by task, focused tests, then the full suite and the type check once. Writes a **verification record** that ties the results to the exact code tree. One commit. |
-| **Review** | `reviewer` subagent, fresh context | Opens every import and API the diff cites, compares the diff to the plan, and **proves the tests bite**: it neutralizes the central invariant and counts the tests that turn red. Zero red means the invariant is untested. |
+| **Execute** | `implementer` subagent | **Acceptance tests first**: one per criterion, proven red on its assertion, reviewed (by the reviewer in fresh context, or a human) and **frozen** in their own commit. Then the code, task by task, running only the test files concerned, until green; the full suite and the type check once. Writes a **verification record** that ties the results to the exact code tree. |
+| **Review** | `reviewer` subagent, fresh context | Checks the frozen tests were not touched, opens every import and API the diff cites, compares the diff to the plan, and **spot-checks the bite**: it neutralizes the central invariant and counts the tests that turn red. Zero red means the invariant is untested. |
 | **Ship** | main agent | Exit gate (end-to-end, build), squash merge, **deployment, smoke test in production**, documented rollback if red, cleanup only after proof. |
 
 **Only a critical defect blocks.** A major stays traced in the report and is fixed in a next cycle; a minor is style. Two fix loops at most. **A defect is not a story**: it goes to the issue tracker, not into the perimeter.
@@ -107,17 +107,18 @@ One story = one `feature/<id>` branch = one dedicated worktree = one PR = one co
 | Gate | Check | What it blocks |
 |---|---|---|
 | Plan validated | `validated: yes` in `docs/plans/<id>.md` | Execution, and any code commit on the story branch (git hook) |
+| Tests frozen | The files listed in `docs/tests/<id>.md` unchanged since the `test(<id>)` commit | The review: a frozen test edited after validation is critical |
 | Verification current | The tree recorded in `docs/verif/<id>.md` matches the commit | Decides whether the review trusts the results or replays them |
 | Ship allowed | `Ship allowed: yes` at the end of `docs/reviews/<id>.md` | The ship, entirely |
 | Production verified | Green smoke test after deployment | The story's cleanup; a red one triggers the rollback |
 
 These gates are file reads, not judgment calls: they work the same under Claude Code, under Codex and in CI (`ztp-gate.sh`).
 
-**Testing doctrine.** Volume is not a safety net: a test budget per story (25 by default), and a plan that wants more must say why. Each rule is tested at the layer where it lives, once. The criterion that replaces the count: **a test that stays green when the rule it names is deleted is worse than no test.** No "red first" ceremony during implementation; the neutralization proof happens in review, in a fresh context, where it actually finds defects.
+**Testing doctrine: test-first, at the level of the acceptance criterion.** Each criterion gets one test, not each function. The test is run before any code and must be red for the right reason — the assertion fails, not an import: skeletons (signatures returning a neutral value) make that possible. It is then reviewed by a context that did not write it, and **frozen**: during the code phase the agent may not modify it, and a test it believes wrong stops the work. The code is written until green, running only the test files concerned; the full suite runs once.
 
-This deliberately differs from the Anthropic playbook's test-first bug-fix recommendation:
-Zero to Prod puts the proof that tests detect the defect in an independent review context,
-rather than asking the context that wrote them to certify its own tests.
+What stays: each rule is tested once, at the layer where it lives; the test budget per story (25 by default) is the ceiling; most tests are unit or service tests with a mocked repository, a real database for DAOs only, one end-to-end per story. The criterion that replaces the count: **a test that stays green when the rule it names is deleted is worse than no test.** The neutralization in review remains, as a spot check rather than the main guarantee.
+
+This now follows the Anthropic playbook's test-first feedback loop, at the level of the acceptance criterion, with the freeze and the independent review that keep the agent from bending its own tests.
 See [the playbook's feedback-loop lesson](https://academy.claude.com/courses/ai-native-sdlc-playbook/give-claude-a-feedback-loop).
 
 ## 6. Tools, installation, settings

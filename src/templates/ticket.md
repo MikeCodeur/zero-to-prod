@@ -11,7 +11,7 @@ Retrieved at: <UTC timestamp>
 <observed behavior, expected existing behavior, reproduction and evidence>
 
 ## Acceptance criteria
-- [ ] <observable restoration of the promised behavior>
+- [ ] AC1 — <observable restoration of the promised behavior — becomes exactly one test, red before the fix>
 
 ## Complexity
 <1–5; the existing flow escalation signals still apply>

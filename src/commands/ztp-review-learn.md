@@ -26,7 +26,7 @@ Output structure: @templates/review-rules.md
 3. Propose a compact "Report" / "Ignore" policy. Each rule has an id, precise applicability,
    a concrete example and evidence. Conflicting feedback goes under "Unresolved proposals".
    No inferred rule may weaken the generic review, severity scale, plan compliance,
-   neutralization proof or gates. Ignore rules reduce noise; they never hide critical defects.
+   freeze check, neutralization spot check or gates. Ignore rules reduce noise; they never hide critical defects.
 4. Write `docs/review-rules.proposed.md` with `Review rules status: proposed`, preserving
    the active file. Show the proposed delta and ask the **tech lead** to approve/change/reject
    it (AskUserQuestion where available). Record their identity and decision. Neither the

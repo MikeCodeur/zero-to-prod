@@ -25,6 +25,7 @@ Design source:     internal
 Design skill:      —
 Design tool:       —
 Test budget:       25
+Test validation:   agent
 Fix level:         critical
 Critical fix loops: 2
 Major fix loops:   1
@@ -67,6 +68,7 @@ CI evals:          no
 | Story track | `auto` (the story's complexity picks the lane) · `full` (always the six-phase pipeline) · `flow` (always `/ztp-flow`) |
 | Flow threshold | complexity at or below which `auto` picks `/ztp-flow` |
 | Test budget | tests per story — a plan wanting more says why |
+| Test validation | who reviews the acceptance tests before any code: `agent` (the reviewer, fresh context) · `human` (a checkpoint blocks) |
 | Fix level | `critical` (only blocking reviews trigger correction) · `major` (also correct majors); absent → `critical` |
 | Critical fix loops | non-negative integer, maximum correction/review attempts triggered by a critical or blocked review per story; absent → `2`. `0` stops at the first blocking review |
 | Major fix loops | non-negative integer, maximum correction/review attempts triggered by majors per story with `Fix level: major`; absent → `1`. `0` leaves majors in the report and proceeds to Ship |
@@ -120,6 +122,7 @@ E2E tool:           —
 ```
 Package manager:   —
 Test:              —
+Test focused:      —
 Typecheck:         —
 E2E:               —
 Build:             —
@@ -138,6 +141,8 @@ CI review runner:  —
 ```
 
 A command left at `—` is one the agents cannot run: they say so rather than guess one.
+`Test focused` runs only the given test files: `{files}` is replaced by their paths
+(e.g. `pnpm vitest run {files}`). Left at `—`, the agents run `Test` followed by the paths.
 `Deploy`, `Smoke test` and `Rollback` are filled by `/ztp-architect` when they are commands; a
 manual step stays `—` here and is described in `docs/deployment.md`.
 
