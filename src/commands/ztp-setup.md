@@ -61,7 +61,8 @@ Only these four. Each one changes what the pipeline does; the rest is pre-filled
 3. **Who draws the screens** — `Design source`: `internal` (the agent produces the mockup, with
    the skill named in `Design skill`) or `external` (the agent writes a brief and an external
    tool named in `Design tool` produces it). A product without a user interface answers `—`:
-   no story will run `/ztp-design`.
+   no story will run `/ztp-design`. Not decided yet → `—` too: `/ztp-design-system` sets it
+   from the tool chosen there.
 4. **The project's commands** — test, typecheck, e2e, build, pre-filled from Step 1. A command
    the project does not have stays `—`; never invent one. On a new project they are all `—`
    for now: `/ztp-architect` fills them once the foundation exists, with `Deploy`,

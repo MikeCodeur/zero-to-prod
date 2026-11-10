@@ -203,7 +203,7 @@ the merge and says so; it never improvises a deployment.
 
 `Design source` in `AGENTS.local.md` is a project decision, never a per-story one: `internal`
 (the agent draws, through `Design skill` when named) or `external` (a brief goes to
-`Design tool`, the result comes back). The system lives in `docs/design-system.md`, each
+`Design tool`, the result comes back). The system lives in `docs/design-system.md` (showcases in `docs/design/`), each
 story's design in `docs/designs/<id>/`, and **the repository is authoritative** — anything
 reworked in an external tool comes back before implementation.
 
@@ -225,7 +225,7 @@ Pipeline artifacts live in markdown under docs/, versioned by git; tracker-backe
 use a local pointer to the canonical record. State is derived from artifacts and git, never
 a parallel state database. An inaccessible external source is unverified, never a pass.
 
-- Framing docs — docs/prd.md, docs/stories.md, docs/reviews/stories.md, docs/architecture.md, docs/foundation.md, docs/deployment.md, docs/design-system.md: committed on the default branch at the end of their phase. (docs/reviews/stories.md reviews the breakdown, not a story: it is a framing doc, unlike docs/reviews/<id>.md which travels with its branch.)
+- Framing docs — docs/prd.md, docs/stories.md, docs/reviews/stories.md, docs/architecture.md, docs/foundation.md, docs/deployment.md, docs/design-system.md, docs/design/: committed on the default branch at the end of their phase. (docs/reviews/stories.md reviews the breakdown, not a story: it is a framing doc, unlike docs/reviews/<id>.md which travels with its branch.)
 - Story docs — docs/research/<id>.md, docs/designs/<id>/ (brief.md, design.md, mockup.html), docs/plans/<id>.md, docs/verif/<id>.md, docs/reviews/<id>.md: committed on feature/<id>. The implementer's single story commit brings the research, the design and the plan; /ztp-ship commits the review. Every PR carries its own research, design, plan and review.
 - Change intake — `docs/intents/` on the target branch; corrective briefs in `docs/tickets/` travel with their work branch. `docs/ops/` reports stay in the repository base after ship cleanup.
 - Document size — research ~200 lines, plan ~250, review ~150. Every downstream agent reads these files and pays for their length. Cap the prose, never the decision tables: what carries decisions stays whole.

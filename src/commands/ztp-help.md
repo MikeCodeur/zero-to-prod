@@ -20,7 +20,9 @@ an intent**. Chore and Quick Fix need no intent. Bugs never inflate the product 
 3. /ztp-stories-review    — reviews the breakdown against the PRD perimeter (fresh context)
 4. /ztp-architect         — stack (recommended, validated, ADR), verified foundation, conventions,
                             environments and deployment, zone rules (.claude/rules/)
-5. /ztp-design-system     — captures the global design system (products with a user interface only)
+5. /ztp-design-system     — sets up the design system (your input, or 3 directions from the tool
+                            you choose) and implements its foundations: tokens, components,
+                            layout, page templates — UI only
 
 ## Per story (one feature = one cycle = one branch = one PR)
 6. /ztp-research <story>  — explores the real context (current code, APIs, traps), checks the premise

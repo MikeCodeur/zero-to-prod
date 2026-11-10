@@ -49,8 +49,9 @@ AGENTS.local.md." Do not pick a default: a project silently set to one path prod
 owner never chose.
 
 Neither the external tool nor the internal skill is prescribed by the method. Any tool that holds
-the design system qualifies — a hosted design tool, an MCP, or a front-end skill such as
-`frontend-design`, `impeccable` or another. **All of them are optional: with `Design skill: —`
+the design system qualifies — a hosted design tool, an MCP, or a front-end skill. The tools the
+method recommends are listed in @templates/design-tools.md, the only place one is named: read it
+when the user asks which to use. **All of them are optional: with `Design skill: —`
 the agent draws the screen itself, and that is a complete internal path, not a degraded one.**
 Only the deliverable and the verification are fixed.
 

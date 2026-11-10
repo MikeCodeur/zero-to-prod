@@ -16,7 +16,7 @@ Output structure: @templates/architecture.md, @templates/deployment.md, @templat
 
 The PRD's "Starting point" decides the path: an **existing codebase** is mapped and conformed to; a **new project** gets a recommended stack and a foundation built here. Either way the phase ends on a foundation that has been verified, not assumed. The user does not need to be an architecture expert: on a new project you recommend and justify, they decide.
 
-This phase writes the only code that does not go through a story: the foundation — structure, configuration, tooling, one example test. No feature code. Anything a user would see as value belongs to a story.
+This phase writes the foundation — structure, configuration, tooling, one example test — one of the only two pieces of code that do not go through a story; the other is the design system's foundations, laid by /ztp-design-system. No feature code. Anything a user would see as value belongs to a story.
 
 ## Step 1 — Existing codebase, or new project?
 Read "Starting point" in docs/prd.md, and confirm it against the repository (AskUserQuestion only if they disagree).
