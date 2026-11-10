@@ -64,7 +64,7 @@ CI evals:          no
 | Merge mode | `local` (squash-merged locally, no review platform) · `pr` (a pull request against the target branch) |
 | Plan validation | `human` (a checkpoint blocks until you validate) · `autonomous` (the agent validates its own plan) |
 | Ship confirmation | `human` (asked before any merge) · `automatic` |
-| Design source | `internal` (the agent draws, using `Design skill`) · `external` (a brief goes to `Design tool`) |
+| Design source | `internal` (the agent draws, using `Design skill`) · `external` (a brief goes to `Design tool`). Still `—` on a product with a user interface → `/ztp-design-system` sets it from the tool chosen there |
 | Story track | `auto` (the story's complexity picks the lane) · `full` (always the six-phase pipeline) · `flow` (always `/ztp-flow`) |
 | Flow threshold | complexity at or below which `auto` picks `/ztp-flow` |
 | Test budget | tests per story — a plan wanting more says why |

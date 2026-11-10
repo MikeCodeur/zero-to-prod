@@ -1,6 +1,6 @@
 ---
 name: design-doctrine
-description: How a story's screen is derived from the design system — what a new screen owes, what a derived one does not, and why nothing is measured outside the design-system phase. Loaded by /ztp-design and /ztp-design-system.
+description: How the design system is set up and how a story's screen is derived from it — who chooses the direction, what a new screen owes, what a derived one does not, and why nothing is measured outside the design-system phase. Loaded by /ztp-design and /ztp-design-system.
 ---
 # Design doctrine
 
@@ -14,9 +14,14 @@ Read `Design source` from `AGENTS.local.md` — a project decision, never a per-
 - `external`: the agent writes a brief, the tool named by `Design tool` produces the screens, and
   the mockup is dropped back into `docs/designs/<id>/`. Dropping it **is** the validation.
 
-The global design system lives in `docs/design-system.md` (components + tokens, anchored to the codebase). Each story's design lives in its own folder, `docs/designs/<id>/` — `design.md`, `mockup.html`, `brief.md` when an external tool produced it, and any extra frames beside them.
+The global design system lives in `docs/design-system.md` (components + tokens, anchored to the codebase), with its HTML showcases in `docs/design/`. Each story's design lives in its own folder, `docs/designs/<id>/` — `design.md`, `mockup.html`, `brief.md` when an external tool produced it, and any extra frames beside them.
 - A story's design can be produced by the agent itself, by an internal design skill, or by an external tool that holds the design system and whose result is brought back. Either way it builds on the design system, and the pipeline prescribes neither the tool nor the skill.
 - **The repository is authoritative.** An external design tool — including one an agent can write to — is a working surface, never the source of truth. Anything reworked there is brought back into `docs/designs/<id>/` before implementation, or the code and the design diverge unnoticed.
+- **The design-system phase orchestrates the proposals and implements the foundations.** The tool
+  the user picks draws the proposals; the phase fixes the contract, checks it, then lays the
+  foundations in the code — tokens, framework, components, layout, empty page templates — with no
+  story and no business content. **The direction is always the user's choice** — never a default,
+  never picked in silence. The recommended tools are named only in `templates/design-tools.md`.
 - **A new screen gets one visual artifact; a derived screen gets none.** The product has nothing
   like it → `design.md` plus **exactly one** deliverable chosen by `Design source`: `mockup.html`
   on the internal path, `brief.md` and the mockup it brings back on the external one — never both.
@@ -32,8 +37,10 @@ The global design system lives in `docs/design-system.md` (components + tokens, 
   them once, on a system that does not move between stories; remeasuring re-litigates it instead of
   using it. Everywhere downstream, look for what is BROKEN — overflow or clipped content, unreadable text,
   a control that disappeared, a missing state, a layout that collapses.
-- Inventing a component or token outside the design system is forbidden. Compose with what exists.
-- The HTML mockup is a reference, not code: the implementation uses the project's real components.
+- Inventing a component or token outside the design system is forbidden. Compose with what
+  exists — the installed components and the page templates first.
+- A mockup or a showcase is a reference, not code: the implementation uses the project's real
+  components. Showcases follow `docs/design-system.md` and are regenerated when it changes.
 - A need the system doesn't cover = a "design system gap" to report, never to fill freestyle.
 - Stories without UI skip `/ztp-design`; a product without a user interface has no design system.
 - "Rendered" means opened the way `UI check` in `AGENTS.local.md` says — a browser for a web product, a

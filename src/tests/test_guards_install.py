@@ -302,5 +302,21 @@ class Repository(unittest.TestCase):
         self.assertTrue((self.root / "templates/ops-report.md").is_file())
 
 
+class DesignTools(unittest.TestCase):
+    def test_design_tools_are_named_only_in_their_template(self):
+        catalogue = METHOD / "src/templates/design-tools.md"
+        rows = [line for line in catalogue.read_text().splitlines() if line.startswith("| ")]
+        names = [row.split("|")[1].strip() for row in rows[1:]]
+        self.assertTrue(names)
+        offenders = []
+        for path in (METHOD / "src").rglob("*.md"):
+            if path == catalogue:
+                continue
+            text = path.read_text().lower()
+            offenders += [f"{path.relative_to(METHOD)}: {name}" for name in names
+                          if name.lower() in text]
+        self.assertEqual(offenders, [])
+
+
 if __name__ == "__main__":
     unittest.main()
