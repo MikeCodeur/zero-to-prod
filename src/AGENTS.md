@@ -93,7 +93,7 @@ and plan fused in one pass, then the same `implementer`, the same fresh-context 
 the same ship. Nothing is relaxed: dedicated worktree, validated plan, frozen acceptance tests, neutralization spot check,
 `Ship allowed` gate, test budget.
 
-Utilities: `/ztp-orchestrator` (the whole cycle, with the two human checkpoints),
+Utilities: `/ztp-orchestrator` (the whole cycle, with its human checkpoints),
 `/ztp-status` (state derived from the files), `/ztp-help`,
 `/ztp-chore` (work that changes no product behavior: a short validated plan, the implementer,
 a verification sized to what changes, no review), `/ztp-test-prune` (a chore that prunes an

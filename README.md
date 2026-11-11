@@ -149,7 +149,7 @@ What it does — and doesn't:
     # a small story — the same cycle, short track:
     /ztp-flow <story>
 
-    # a story's full cycle, with the two human checkpoints:
+    # a story's full cycle, with its human checkpoints (design, plan, ship):
     /ztp-orchestrator <story>
 
     # where does the project stand?

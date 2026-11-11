@@ -26,7 +26,8 @@ an intent**. Chore and Quick Fix need no intent. Bugs never inflate the product 
 
 ## Per story (one feature = one cycle = one branch = one PR)
 6. /ztp-research <story>  — explores the real context (current code, APIs, traps), checks the premise
-7. /ztp-design <story>    — derives the screen from the design system (UI stories)
+7. /ztp-design <story>    — derives the screen from the design system (UI stories), then the
+                            design validation gate: human or agent per `Design validation`
 8. /ztp-plan <story>      — breaks the story into tasks
 9. /ztp-execute <story>   — implements the story (isolated subagent)
 10. /ztp-review <story>   — anti-hallucination review + gate
@@ -49,7 +50,8 @@ or added dependency → escalate to the full pipeline, even mid-flight.
 /ztp-orchestrator <story> — chains the 6 phases of the cycle in one command. With
 `Story track: auto`, it picks between /ztp-flow and the full pipeline from the story's complexity.
 It replaces nothing: same contracts, same subagents, same gates as the individual commands. It
-stops on 2 blocking questions: validate the plan (written into the plan file), confirm the ship.
+stops on blocking questions: validate the design (UI stories, `Design validation: human`),
+validate the plan (written into the plan file), confirm the ship.
 Routine cycle → orchestrator; need to steer or inspect a phase → individual commands.
 
 Where the project stands (progress per story, next command): /ztp-status

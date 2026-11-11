@@ -4,6 +4,7 @@
 # the gates live in the repo, not in a tool's per-command permissions.
 #
 # Subcommands:
+#   ztp-gate design-validated <id>   exit 0 if docs/designs/<id>/design.md has `validated: yes`
 #   ztp-gate plan-validated <id>     exit 0 if docs/plans/<id>.md has `validated: yes`
 #   ztp-gate ship-allowed  <id>      exit 0 if docs/reviews/<id>.md has `Ship allowed: yes`
 #   ztp-gate verif-current <id>      exit 0 if docs/verif/<id>.md proves the CURRENT code was verified
@@ -25,6 +26,17 @@ story_id_from_branch() {
     chore/*)   printf '%s' "${branch#chore/}" ;;
     *) printf '' ;;
   esac
+}
+
+design_validated() {
+  local id="$1" root; root="$(repo_root)"
+  local f="$root/docs/designs/$id/design.md"
+  [ -f "$f" ] || { echo "ztp-gate: no design for '$id' (docs/designs/$id/design.md missing). Run /ztp-design $id." >&2; return 1; }
+  if grep -qE '^validated:[[:space:]]*yes[[:space:]]*$' "$f"; then
+    return 0
+  fi
+  echo "ztp-gate: design '$id' not validated (docs/designs/$id/design.md lacks 'validated: yes'). Validate it via /ztp-design $id." >&2
+  return 1
 }
 
 plan_validated() {
@@ -143,6 +155,7 @@ pre_commit() {
 
 cmd="${1:-}"
 case "$cmd" in
+  design-validated) design_validated "${2:?story id required}" ;;
   plan-validated)  plan_validated "${2:?story id required}" ;;
   ship-allowed)    ship_allowed   "${2:?story id required}" ;;
   verif-current)   verif_current  "${2:?story id required}" ;;
@@ -150,7 +163,7 @@ case "$cmd" in
   tests-frozen)    tests_frozen   "${2:?story id required}" ;;
   pre-commit)      pre_commit ;;
   *)
-    echo "usage: ztp-gate {plan-validated <id>|ship-allowed <id>|verif-current <id>|verif-clean|tests-frozen <id>|pre-commit}" >&2
+    echo "usage: ztp-gate {design-validated <id>|plan-validated <id>|ship-allowed <id>|verif-current <id>|verif-clean|tests-frozen <id>|pre-commit}" >&2
     exit 2
     ;;
 esac

@@ -211,6 +211,16 @@ class Repository(unittest.TestCase):
     def gate(self, *args, expected=0):
         return self.run_command("bash", str(METHOD / "src/hooks/ztp-gate.sh"), *args, expected=expected)
 
+    def test_design_validated_requires_validated_yes_in_design_md(self):
+        self.assertIn("no design", self.gate("design-validated", "s01-book", expected=1).stderr)
+        design = self.root / "docs/designs/s01-book/design.md"
+        design.parent.mkdir(parents=True)
+        design.write_text("---\nvalidated: no\n---\n# Design\nvalidated: yes is written by the gate\n")
+        self.assertIn("not validated", self.gate("design-validated", "s01-book", expected=1).stderr)
+        design.write_text("---\nvalidated: yes\n---\n# Design\n")
+        self.gate("design-validated", "s01-book")
+        self.assertIn("no design", self.gate("design-validated", "s02-other", expected=1).stderr)
+
     def test_install_ignores_verification_records_once_and_warns_if_tracked(self):
         record = self.root / "docs/verif/s00-old.md"
         record.parent.mkdir(parents=True)

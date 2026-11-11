@@ -36,7 +36,7 @@ You are FORBIDDEN from:
 ## Phase 0 — Prerequisites and eligibility (fail-closed)
 
 1. `AGENTS.local.md` exists? Missing → STOP: "This project has no settings. Run /ztp-setup."
-   Read `Story track`, `Flow threshold`, `Plan validation`, `Merge mode`, `Ship confirmation`,
+   Read `Story track`, `Flow threshold`, `Plan validation`, `Design validation`, `Merge mode`, `Ship confirmation`,
    the project commands and the stages from it. Read the correction settings and defaults
    through `/ztp-review`, "Fix policy"; the same contract governs every retry below.
 2. `docs/prd.md`, `docs/stories.md` and `docs/architecture.md` exist? Any missing → STOP and
@@ -92,7 +92,13 @@ scope and establish the facts **before** writing a single task:
    Map every acceptance criterion to exactly one test in the "Acceptance tests" table.
 6. Past roughly six tasks, the story is not small: say so and suggest `/ztp-orchestrator <id>`
    rather than growing a short-track plan into a long one.
-7. Write `docs/plans/<id>.md`, frontmatter `validated: no` and `track: flow`. **Cap it at
+7. **Design.** This track never draws a new screen: that is an escalation signal. When the
+   story touches UI and `docs/designs/<id>/design.md` exists, it goes through the same gate as
+   on the full track before the plan is written — `validated: yes` already → continue;
+   otherwise apply `Design validation` exactly as /ztp-design's Step 7 does (`human`: show it
+   and ask "Validate this design?" — Validate / Modify / Stop; `agent`: check it, validate it,
+   say nobody else looked). Stop or an unvalidated design → no plan.
+8. Write `docs/plans/<id>.md`, frontmatter `validated: no` and `track: flow`. **Cap it at
    ~150 lines.**
 
 **CHECKPOINT — per `Plan validation`.** `human`: present the summary (verified facts, tasks,

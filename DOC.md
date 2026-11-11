@@ -47,6 +47,7 @@ Format: one setting per line, `Name: value`, no trailing comment. The value is e
 | `Flow threshold` | complexity at or below which `auto` picks `/ztp-flow` |
 | `Design source` | `internal` (the agent draws, via `Design skill`) · `external` (a brief goes to `Design tool`). Still `—` on a product with a user interface → `/ztp-design-system` sets it from the tool chosen there |
 | `Design skill` / `Design tool` | which one, when there is one. `—` is valid: the agent draws it itself |
+| `Design validation` | `human` (a checkpoint blocks until you validate the design) · `agent` (the agent checks it against the story and the design system, and validates it itself) |
 | `Test budget` | tests per story; a plan wanting more says why |
 | `Test validation` | who reviews the acceptance tests before any code: `agent` (the reviewer, fresh context — default) · `human` (a checkpoint blocks) |
 | `Fix level` | `critical` (default when absent) · `major` (also correct majors before Ship) |
@@ -170,9 +171,11 @@ Either way it writes the conventions into `AGENTS.local.md` as rules an agent ca
 
 The phase starts with one question: **is this a new screen, or a derived one?**
 - **Derived** — the story composes, extends or restates something the product already ships. It produces `design.md` listing the deltas, and **no mockup**: drawing an existing screen draws the product twice, and the real screen gets opened in its target environment at the end of Execute, which is where the defects that stop a feature working are actually found.
-- **New** — it produces `design.md` plus **exactly one** visual artifact, never both: `mockup.html` on the internal path, or `brief.md` on the external one, with the mockup the tool returns dropped back into the folder (dropping it there *is* the validation).
+- **New** — it produces `design.md` plus **exactly one** visual artifact, never both: `mockup.html` on the internal path, or `brief.md` on the external one, with the mockup the tool returns dropped back into the folder.
 
 A mockup is rendered and looked at — in the target environment, in every theme and form factor the design system declares — and that step sends you back rather than ticking a box. **Nothing is measured**: contrast, font sizes, positions and `Δx` are design-system values, settled once upstream. Downstream, look for what is BROKEN. Needs the system doesn't cover become "design system gaps" — recorded, never invented. Stories without UI skip this step.
+
+Then the **design validation gate**, new or derived screen alike: `design.md` opens with `validated: no`. `Design validation: human` → the mockup is shown (path, themes and form factors checked, gaps) and only an explicit Validate writes `validated: yes`; `agent` → the agent checks it against the story's criteria and the design system, validates it, and says nobody else looked. `/ztp-plan` refuses a story with a screen until its design says `validated: yes`.
 
 **/ztp-plan** — breaks the story into ordered tasks, each small and verifiable, based on the research. Anticipates touched files and the test strategy, and carries the run's interdicts — what must not change, verifiable by the reviewer. Capped at ~250 lines. Never produces code. The plan is validated before execution, and `validated: yes` in its frontmatter is what execute checks.
 
@@ -213,7 +216,7 @@ Every later phase resolves the absolute path and verifies the exact branch. Miss
 
 ### Utilities
 
-**/ztp-orchestrator <story>** — the conductor. It chains one story's full cycle in a single command, picking the track from `Story track` and handing over to `/ztp-flow` when the story qualifies. What it does NOT do: replace the method. Each phase follows the exact contract of its standalone command, code and review stay delegated to the same subagents, and it stops on two blocking questions (real AskUserQuestion calls, not sentences): **validate the plan** and **confirm the ship**. Use it when the cycle is routine; use the individual commands when you want to inspect or steer a phase. It is fail-closed on framing: no PRD, stories or architecture → it stops and points at the missing step.
+**/ztp-orchestrator <story>** — the conductor. It chains one story's full cycle in a single command, picking the track from `Story track` and handing over to `/ztp-flow` when the story qualifies. What it does NOT do: replace the method. Each phase follows the exact contract of its standalone command, code and review stay delegated to the same subagents, and it stops on blocking questions (real AskUserQuestion calls, not sentences): **validate the design** (UI stories, when `Design validation: human`), **validate the plan** and **confirm the ship**. Use it when the cycle is routine; use the individual commands when you want to inspect or steer a phase. It is fail-closed on framing: no PRD, stories or architecture → it stops and points at the missing step.
 
 **/ztp-help** — prints the pipeline map: the phases in order, the single rule, the per-story cycle, the short track. The user-facing cheat sheet. User-invoked only.
 
@@ -287,12 +290,13 @@ Three mechanical, file-based gates. None of them is a judgment call — each is 
 
 | Gate | Check | Blocks |
 | --- | --- | --- |
+| Design validated | `docs/designs/<id>/design.md` frontmatter has `validated: yes` (stories with a screen) | `/ztp-plan` |
 | Plan validated | `docs/plans/<id>.md` frontmatter has `validated: yes` | any code commit on `feature/<id>`, and `/ztp-execute` |
 | Verification current | `docs/verif/<id>.md` (local, gitignored) records a `Tree:` matching the commit outside `docs/` | nothing by itself — it decides whether the reviewer trusts the run or repeats it |
 | Records only | `docs/verif/` holds only `.md` records at its root; screenshots, logs, JSON, scripts go to `.ztp/evidence/<id>/` (gitignored) | `/ztp-ship`; a major at review. Also run inside `verif-current` |
 | Ship allowed | `docs/reviews/<id>.md` ends with `Ship allowed: yes` | `/ztp-ship`, entirely |
 
-`src/hooks/ztp-gate.sh` implements them (`plan-validated`, `verif-current`, `verif-clean`, `ship-allowed`, `tests-frozen`, plus `pre-commit`).
+`src/hooks/ztp-gate.sh` implements them (`design-validated`, `plan-validated`, `verif-current`, `verif-clean`, `ship-allowed`, `tests-frozen`, plus `pre-commit`).
 
 **A critical always blocks the ship.** `/ztp-review` owns the correction policy, shared by
 manual commands, Flow and Orchestrator. `Fix level: critical` preserves the existing behavior;
