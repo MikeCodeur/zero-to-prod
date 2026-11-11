@@ -17,7 +17,7 @@ Derive the state from the files — never guess. Bash is for read-only git and d
    - research: docs/research/<id>.md exists?
    - design: docs/designs/<id>/design.md exists? (UI stories only — otherwise n/a)
    - plan: docs/plans/<id>.md — missing / draft (no `validated: yes` in the frontmatter) / validated, plus ticked vs total task checkboxes (x/y). A plan whose frontmatter says `track: flow` carries its research inside it: show the story as `flow`, and read its research column as n/a rather than missing.
-   - verification: docs/verif/<id>.md exists? — shown only for a story past execution.
+   - verification: docs/verif/<id>.md exists in the story's worktree? — shown only for a story past execution. It is never committed: absent from a clone, it reads `local only`, not a failure.
    - review: grep '^Ship allowed:' docs/reviews/<id>.md → yes / no / none.
    - correction: apply `/ztp-review`, "Fix policy", read-only to the current settings and
      report. Show `Fix level`, critical and major attempts used/allowed, and the resulting

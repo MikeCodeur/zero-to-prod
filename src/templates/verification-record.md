@@ -1,14 +1,18 @@
 # Verification — Story <id>
 
-> Written by the implementer as its **last action before the story commit**, and committed
-> with it. The reviewer checks `Tree:` against the commit; when they match, it takes these
+> Written by the implementer as its **last action before the story commit**, and **never
+> committed**: `docs/verif/` is gitignored, so the record stays in the story's worktree for
+> its review. A fresh clone or CI has none — the reviewer then reruns the suite and the type
+> check. `docs/verif/` holds only these records — one `<id>.md` per story or chore, nothing
+> else: screenshots, logs, JSON, scripts and subfolders go to `.ztp/evidence/<id>/`
+> (`ztp-gate verif-clean`). The reviewer checks `Tree:` against the commit; when they match, it takes these
 > results as proven instead of re-running them. Every command is the project's own, quoted
 > verbatim from `AGENTS.local.md` — never a substitute, never a paraphrase.
 
 How `Tree:` is produced, in this exact order: stage everything (`git add -A`), run
 `git write-tree`, copy its output here. The tree is therefore the code that was actually
-tested. This file and the plan's ticked checkboxes are written afterwards; they live under
-`docs/`, which the check excludes.
+tested. This file, being ignored, is never in that tree; the plan's ticked checkboxes are
+written afterwards, under `docs/`, which the check excludes.
 
 Tree: <40-hex output of `git write-tree`>
 

@@ -77,6 +77,8 @@ After a global install, drop the per-project files (templates + rules) in each p
     ~/.claude/zero-to-prod/install.sh init                 # Claude
     ~/.claude/zero-to-prod/install.sh init --target codex  # Codex
 
+The installer also adds `/docs/verif/` and `/.ztp/evidence/` to the project's `.gitignore`: verification records and throwaway proof (screenshots, command output) stay local, and `docs/verif/` holds only the records.
+
 `AGENTS.md` (the rules) is shared and read natively by both tools; on Claude a one-line `CLAUDE.md` imports it. The 7 skills are the open `SKILL.md` standard, so they carry over unchanged; the 22 `ztp-*` commands are emitted as Codex skills. See the fidelity matrix in [DOC.md](DOC.md).
 
 When maintaining zero-to-prod itself, edit the shipped rules in `src/AGENTS.md`. The root

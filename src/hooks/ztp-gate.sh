@@ -7,6 +7,7 @@
 #   ztp-gate plan-validated <id>     exit 0 if docs/plans/<id>.md has `validated: yes`
 #   ztp-gate ship-allowed  <id>      exit 0 if docs/reviews/<id>.md has `Ship allowed: yes`
 #   ztp-gate verif-current <id>      exit 0 if docs/verif/<id>.md proves the CURRENT code was verified
+#   ztp-gate verif-clean             exit 0 if docs/verif/ holds only .md records at its root
 #   ztp-gate tests-frozen  <id>      exit 0 if the validated acceptance tests are unchanged since their test(<id>) commit
 #   ztp-gate pre-commit              block a code commit on feature/<id> or chore/<id> without a validated plan
 #
@@ -50,12 +51,27 @@ ship_allowed() {
 
 # The implementer records what it ran in docs/verif/<id>.md, with the tree it ran against.
 # This says whether that record still describes the committed code: same tree outside docs/.
-# docs/ is excluded because the record itself and the plan's ticked checkboxes are written
-# after the run — the same carve-out pre_commit() makes for docs-only commits.
+# docs/ is excluded because the plan's ticked checkboxes are written after the run — the same
+# carve-out pre_commit() makes for docs-only commits. The record itself is gitignored: read
+# from the worktree, never part of a tree, absent on a fresh clone or in CI.
+# docs/verif/ holds the records and nothing else: one <id>.md per story or chore, at its root.
+# Screenshots, logs, JSON, scripts belong in .ztp/evidence/<id>/. Called by verif_current, so a
+# cluttered folder never yields a trusted record. .DS_Store, written by macOS, is tolerated.
+verif_clean() {
+  local root dir extra; root="$(repo_root)"; dir="$root/docs/verif"
+  [ -d "$dir" ] || return 0
+  extra="$(find "$dir" -mindepth 1 \( -type d -o ! -name '*.md' \) ! -name .DS_Store -print | sed "s|^$root/||" | sort)"
+  [ -z "$extra" ] && return 0
+  echo "ztp-gate: docs/verif/ holds only <id>.md records. Move these to .ztp/evidence/<id>/:" >&2
+  printf '%s\n' "$extra" | sed 's/^/  /' >&2
+  return 1
+}
+
 verif_current() {
   local id="$1" root; root="$(repo_root)"
+  verif_clean || return 1
   local f="$root/docs/verif/$id.md"
-  [ -f "$f" ] || { echo "ztp-gate: no verification record for '$id' (docs/verif/$id.md missing). The implementer writes it before the story commit." >&2; return 1; }
+  [ -f "$f" ] || { echo "ztp-gate: no verification record for '$id' (docs/verif/$id.md missing — it is local, never committed: absent on a fresh clone or in CI). Rerun the checks." >&2; return 1; }
   if ! grep -qE '^Verification status:[[:space:]]*complete[[:space:]]*$' "$f"; then
     echo "ztp-gate: verification record for '$id' is not complete (docs/verif/$id.md lacks 'Verification status: complete')." >&2
     return 1
@@ -130,10 +146,11 @@ case "$cmd" in
   plan-validated)  plan_validated "${2:?story id required}" ;;
   ship-allowed)    ship_allowed   "${2:?story id required}" ;;
   verif-current)   verif_current  "${2:?story id required}" ;;
+  verif-clean)     verif_clean ;;
   tests-frozen)    tests_frozen   "${2:?story id required}" ;;
   pre-commit)      pre_commit ;;
   *)
-    echo "usage: ztp-gate {plan-validated <id>|ship-allowed <id>|verif-current <id>|tests-frozen <id>|pre-commit}" >&2
+    echo "usage: ztp-gate {plan-validated <id>|ship-allowed <id>|verif-current <id>|verif-clean|tests-frozen <id>|pre-commit}" >&2
     exit 2
     ;;
 esac

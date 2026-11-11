@@ -51,7 +51,8 @@ If blocked, do not leave this implicit:
 - [ ] Design system respected — components/tokens from docs/design-system.md, screen matches the intent of docs/designs/<id>/design.md (UI stories)
 
 ## Tests
-- [ ] Verification record checked (`ztp-gate verif-current <id>`): <current, taken as proof | stale/missing → suite and type check re-run here>
+- [ ] `docs/verif/` holds only `.md` records (`ztp-gate verif-clean`) — anything else is a major, moved to `.ztp/evidence/<id>/`
+- [ ] Verification record checked (`ztp-gate verif-current <id>`): <current, taken as proof | stale, or missing (fresh clone, CI — the record is never committed) → suite and type check re-run here>
 - [ ] Freeze held: `ztp-gate tests-frozen <id>` green — no frozen test edited, skipped or deleted
 - [ ] One test per acceptance criterion, named by its id (no assertion-free tests)
 - [ ] Spot check: <invariant neutralized> → <N> tests red, restored (`git diff --exit-code` clean)

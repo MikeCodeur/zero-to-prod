@@ -19,12 +19,17 @@ within scope. Scope never relaxes the verification-record check or permits a hid
 **1. Establish what already passed, before running anything.** The implementer wrote
 `docs/verif/<id>.md`: the commands it ran, their exit codes, and the `Tree:` they covered.
 Check it with `ztp-gate verif-current <id>` — or `git diff --quiet <Tree> HEAD -- .
-':(exclude)docs'` where the hook isn't installed.
+':(exclude)docs'` where the hook isn't installed. It also runs `verif-clean`: anything in
+`docs/verif/` other than root `.md` records fails it — a **major** finding naming the files to
+move to `.ztp/evidence/<id>/` (without the hook: `find docs/verif -mindepth 1 \( -type d -o !
+-name '*.md' \)` must print nothing).
 
 - **Current** (exit 0, `Verification status: complete`, every recorded exit code 0) → the
   suite and the type check are proven for this exact code. Do not re-run them; say in the
   report what you took from the record, and read its "Not proven here" section.
 - **Missing, incomplete, stale, or any non-zero exit code** → run them yourself and say why.
+  The record is local and never committed: a fresh clone or a CI run has none, and that is
+  this case, not an error.
 
 "Tests pass" written in prose is a claim; a record whose tree matches the commit is a fact.
 That is the whole difference. Fail-closed: an absent record is never a pass.

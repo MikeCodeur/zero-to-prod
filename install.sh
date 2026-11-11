@@ -175,6 +175,24 @@ wire_claude_md() {
   fi
 }
 
+# docs/verif/ holds each story's verification record: local proof for the review of that
+# worktree, never committed. A fresh clone or CI has none, and the reviewer reruns the checks.
+# .ztp/evidence/<id>/ holds the throwaway proof (screenshots, command output): local too.
+ignore_local_records() {
+  is_method_repo && return 0
+  local line core
+  for line in /docs/verif/ /.ztp/evidence/; do
+    core="${line#/}"; core="${core%/}"
+    if [ -f ./.gitignore ] && grep -qxE "/?${core//./\\.}/?" ./.gitignore; then continue; fi
+    [ -s ./.gitignore ] && [ -n "$(tail -c1 ./.gitignore)" ] && printf '\n' >> ./.gitignore
+    printf '%s\n' "$line" >> ./.gitignore
+    echo "· .gitignore: $line added — kept local, never committed."
+  done
+  if git rev-parse --git-dir >/dev/null 2>&1 && [ -n "$(git ls-files -- docs/verif 2>/dev/null)" ]; then
+    echo "⚠  docs/verif/ is still tracked. To stop committing it: git rm -r --cached docs/verif"
+  fi
+}
+
 # Repo-level enforcement: git hooks (opt-in, reversible). Tool-independent.
 install_hooks() {
   command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1 || {
@@ -254,12 +272,12 @@ install_target() {
     claude)
       copy_tooling_claude "./.claude"
       sync_templates "$SRC"; assemble_agents_md "$SRC"; warn_agents_local; wire_claude_md
-      copy_runtime
+      copy_runtime; ignore_local_records
       echo "✅ zero-to-prod installed (Claude, project, version $VERSION). Commands: /ztp-setup … /ztp-ship" ;;
     codex)
       copy_tooling_codex "./.codex"
       sync_templates "$SRC"; assemble_agents_md "$SRC"; warn_agents_local   # AGENTS.md is native to Codex, no CLAUDE.md
-      copy_runtime
+      copy_runtime; ignore_local_records
       echo "✅ zero-to-prod installed (Codex, project, version $VERSION). Skills: ztp-setup … ztp-ship in .codex/skills." ;;
     all)
       install_target claude
@@ -307,7 +325,7 @@ case "$MODE" in
     # tooling already installed globally. That is the only difference with project mode.
     local_src="$SRC"; [ -d "$local_src/templates" ] || local_src="$CACHE"
     sync_templates "$local_src"; assemble_agents_md "$local_src"; warn_agents_local
-    copy_runtime
+    copy_runtime; ignore_local_records
     case "$TARGET" in claude|all) wire_claude_md ;; esac   # CLAUDE.md only when Claude is a target
     echo "✅ templates + rules added to $(pwd) (target $TARGET)"
     if [ "$HOOKS" = 1 ]; then install_hooks; fi

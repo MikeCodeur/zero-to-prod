@@ -71,12 +71,16 @@ task that ships one — every defect that made a feature not work at all was fou
 2. The project's type check, once, after your last edit.
 3. **The verification record** — `docs/verif/<id>.md`, structured by
    templates/verification-record.md. Stage everything (`git add -A`), take `git write-tree`,
-   write it as the `Tree:` line, and record each command with its exit code and counts. This
+   write it as the `Tree:` line, and record each command with its exit code and counts. The
+   file is gitignored: it stays in the worktree for the review and is never committed.
+   `docs/verif/` holds nothing else — no screenshots, logs, JSON, scripts or subfolders: the
+   throwaway proof goes to `.ztp/evidence/<id>/`. This
    is what lets the review trust your run instead of replaying it; `ztp-gate verif-current
    <id>` checks it against the commit. Never record a run you did not make: the gate compares
    trees, but only you can make the file honest.
 4. **One single commit for the code of the story**, on top of the frozen test commit, tests green, carrying the story docs (research,
-   design, the plan with its checkboxes, the verification record) and the code of every task.
+   design, the plan with its checkboxes) and the code of every task — not the verification
+   record, which stays local.
    A plan of nine tasks does not make nine commits. Split only for something you would want
    to revert on its own, typically a migration.
 
