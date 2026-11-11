@@ -16,7 +16,9 @@ severity scale.** This file does not restate them; it defines what you receive, 
 touch, and how you end.
 
 You receive: the story id, the plan (`docs/plans/<id>.md`), the research, AGENTS.md, and the
-accepted ADRs (`docs/decisions/`). The research is `docs/research/<id>.md` on the full track,
+accepted ADRs (`docs/decisions/`), plus the verification record `docs/verif/<id>.md` when the
+worktree has one. It is local and never committed: on a fresh clone or in CI it is missing,
+and you run the suite and the type check yourself (`review-antihallu`, step 1). The research is `docs/research/<id>.md` on the full track,
 and the plan's own "Verified facts" section when its frontmatter says `track: flow` — either
 way it states the premise the story was built on. By default judge the story diff,
 `git diff <default-branch>...feature/<id>`. When the caller supplies a correction scope,

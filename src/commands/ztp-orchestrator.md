@@ -1,5 +1,5 @@
 ---
-description: Chain a story's full cycle — Research → Design → Plan → Execute → Review → Ship — with two blocking human checkpoints (plan validation, ship confirmation)
+description: Chain a story's full cycle — Research → Design → Plan → Execute → Review → Ship — with blocking human checkpoints (design validation for UI stories, plan validation, ship confirmation)
 argument-hint: <story id or name>
 allowed-tools:
   - Read
@@ -14,11 +14,11 @@ allowed-tools:
 
 Target story: $ARGUMENTS
 
-You conduct the cycle; you never do a phase's work inline when a subagent owns it, and you never write code yourself. The two human checkpoints are non-negotiable: plan validation and ship confirmation. A checkpoint is an actual AskUserQuestion call — never a rhetorical sentence in your output. This is a conductor, not an autopilot.
+You conduct the cycle; you never do a phase's work inline when a subagent owns it, and you never write code yourself. The human checkpoints are non-negotiable: design validation (UI stories, when `Design validation: human`), plan validation and ship confirmation. A checkpoint is an actual AskUserQuestion call — never a rhetorical sentence in your output. This is a conductor, not an autopilot.
 
 ## Phase 0 — Prerequisites (fail-closed)
 The orchestrator drives one story's cycle — it never replaces the framing. Check, in order:
-0. AGENTS.local.md exists? Missing → STOP: "This project has no settings. Run /ztp-setup." Read `Story track`, `Flow threshold`, `Plan validation`, `Design source`, `Merge mode`, `Ship confirmation`, the stages and the project commands from it: every checkpoint below is governed by them. Read correction settings and defaults through `/ztp-review`, "Fix policy".
+0. AGENTS.local.md exists? Missing → STOP: "This project has no settings. Run /ztp-setup." Read `Story track`, `Flow threshold`, `Plan validation`, `Design source`, `Design validation`, `Merge mode`, `Ship confirmation`, the stages and the project commands from it: every checkpoint below is governed by them. Read correction settings and defaults through `/ztp-review`, "Fix policy".
 1. docs/prd.md exists? Missing → STOP: "No PRD — the pipeline starts with /ztp-prd <idea>. Nothing to orchestrate yet."
 2. docs/stories.md exists? Missing → STOP: "No stories — run /ztp-stories first."
 3. docs/architecture.md exists? Missing → STOP: "No architecture — run /ztp-architect first."
@@ -33,7 +33,7 @@ Bootstrap or verify the story's workspace exactly as AGENTS.md, "Where work happ
 specifies, and perform every read and write there. Report the absolute path, the branch and
 the environment files copied (names only, never values). Any conflict it names is a hard stop.
 
-Every phase below, every subagent and both checkpoints operate on files in that worktree.
+Every phase below, every subagent and every checkpoint operate on files in that worktree.
 
 ## Phase 1 — Research
 If docs/research/<id>.md doesn't exist, produce it now following the ztp-research contract: codebase-analysis skill on the story's scope, current state of the code, output structured by @templates/research.md. Otherwise reuse the existing file.
@@ -44,6 +44,14 @@ contract: fail-closed on docs/design-system.md, then `Design source` from AGENTS
 unset and nobody to answer this turn → STOP and return the question, never pick a default. A
 derived screen produces `design.md` alone; a genuinely new one adds exactly one visual
 artifact, `mockup.html` or `brief.md` per that setting. A story without UI skips this phase.
+
+CHECKPOINT — per `Design validation` (UI stories only). If `design.md` already says
+`validated: yes`, continue. Otherwise run the ztp-design validation gate (its Step 7): `human` →
+show the mockup's path, the themes and form factors checked and the gaps noted, and ask via
+AskUserQuestion: "Validate this design?" — Validate / Modify / Stop; only Validate writes
+`validated: yes`, Stop stops. `agent` → check it against the story's criteria and the design
+system, write `validated: yes`, and say nobody else looked at it. Phase 3 does not start on an
+unvalidated design.
 
 ## Phase 3 — Plan
 If docs/plans/<id>.md doesn't exist, produce it following the ztp-plan contract: small verifiable tasks, structured by @templates/plan.md.

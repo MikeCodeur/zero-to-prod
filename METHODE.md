@@ -87,9 +87,9 @@ One story = one `feature/<id>` branch = one dedicated worktree = one PR = one co
 | Step | Who | What matters |
 |---|---|---|
 | **Research** | main agent | The real state of the code, not the one the docs describe. Checks the story's **premise**: a function that exists but fails on the story's case invalidates the story. Re-scores complexity. |
-| **Design** | main agent | Screens derived from the design system, nothing invented. An existing screen changed: a list of deltas, no mockup. A new screen: exactly one mockup, rendered and looked at in the target environment. |
+| **Design** | main agent | Screens derived from the design system, nothing invented. An existing screen changed: a list of deltas, no mockup. A new screen: exactly one mockup, rendered and looked at in the target environment. Validated by a human or by the agent per `Design validation`; `validated: yes` conditions the plan. |
 | **Plan** | main agent | Small verifiable tasks, the story's interdicts, the point everything turns on, the test strategy. Validated by a human or by the agent per the settings; `validated: yes` conditions execution. |
-| **Execute** | `implementer` subagent | **Acceptance tests first**: one per criterion, proven red on its assertion, reviewed (by the reviewer in fresh context, or a human) and **frozen** in their own commit. Then the code, task by task, running only the test files concerned, until green; the full suite and the type check once. Writes a **verification record** that ties the results to the exact code tree. |
+| **Execute** | `implementer` subagent | **Acceptance tests first**: one per criterion, proven red on its assertion, reviewed (by the reviewer in fresh context, or a human) and **frozen** in their own commit. Then the code, task by task, running only the test files concerned, until green; the full suite and the type check once. Writes a **verification record** that ties the results to the exact code tree — kept in the worktree, never committed. |
 | **Review** | `reviewer` subagent, fresh context | Checks the frozen tests were not touched, opens every import and API the diff cites, compares the diff to the plan, and **spot-checks the bite**: it neutralizes the central invariant and counts the tests that turn red. Zero red means the invariant is untested. |
 | **Ship** | main agent | Exit gate (end-to-end, build), squash merge, **deployment, smoke test in production**, documented rollback if red, cleanup only after proof. |
 
@@ -100,15 +100,17 @@ One story = one `feature/<id>` branch = one dedicated worktree = one PR = one co
 - *Short track* (`/ztp-flow`): for a simple story, research and plan fused into one pass, then the same implementer, the same review, the same ship. A migration, a new screen, an authorization or API contract change, or an added dependency sends it back to the full pipeline, even mid-flight.
 - *Quick Fix*: on explicit request, for a local, reversible adjustment with no business impact (a color, a label). Everything else goes through the pipeline.
 
-`/ztp-orchestrator` chains a full cycle with two human checkpoints (validate the plan, confirm the ship); `/ztp-status` shows progress and the next useful command.
+`/ztp-orchestrator` chains a full cycle with its human checkpoints (validate the design when `Design validation: human`, validate the plan, confirm the ship); `/ztp-status` shows progress and the next useful command.
 
 ## 5. Gates and tests
 
 | Gate | Check | What it blocks |
 |---|---|---|
+| Design validated | `validated: yes` in `docs/designs/<id>/design.md` (stories with a screen) | The plan |
 | Plan validated | `validated: yes` in `docs/plans/<id>.md` | Execution, and any code commit on the story branch (git hook) |
 | Tests frozen | The files listed in `docs/tests/<id>.md` unchanged since the `test(<id>)` commit | The review: a frozen test edited after validation is critical |
-| Verification current | The tree recorded in `docs/verif/<id>.md` matches the commit | Decides whether the review trusts the results or replays them |
+| Records only | `docs/verif/` holds only `<id>.md` records; throwaway proof lives in `.ztp/evidence/<id>/` | The ship; a major at review |
+| Verification current | The tree recorded in `docs/verif/<id>.md` (local, gitignored) matches the commit | Decides whether the review trusts the results or replays them; a missing record (fresh clone, CI) means they are replayed |
 | Ship allowed | `Ship allowed: yes` at the end of `docs/reviews/<id>.md` | The ship, entirely |
 | Production verified | Green smoke test after deployment | The story's cleanup; a red one triggers the rollback |
 

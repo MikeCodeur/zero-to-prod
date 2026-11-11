@@ -211,6 +211,71 @@ class Repository(unittest.TestCase):
     def gate(self, *args, expected=0):
         return self.run_command("bash", str(METHOD / "src/hooks/ztp-gate.sh"), *args, expected=expected)
 
+    def test_design_validated_requires_validated_yes_in_design_md(self):
+        self.assertIn("no design", self.gate("design-validated", "s01-book", expected=1).stderr)
+        design = self.root / "docs/designs/s01-book/design.md"
+        design.parent.mkdir(parents=True)
+        design.write_text("---\nvalidated: no\n---\n# Design\nvalidated: yes is written by the gate\n")
+        self.assertIn("not validated", self.gate("design-validated", "s01-book", expected=1).stderr)
+        design.write_text("---\nvalidated: yes\n---\n# Design\n")
+        self.gate("design-validated", "s01-book")
+        self.assertIn("no design", self.gate("design-validated", "s02-other", expected=1).stderr)
+
+    def test_install_ignores_verification_records_once_and_warns_if_tracked(self):
+        record = self.root / "docs/verif/s00-old.md"
+        record.parent.mkdir(parents=True)
+        record.write_text("old\n")
+        self.commit()
+        result = self.install("all")
+        self.install("all", "update")
+        lines = (self.root / ".gitignore").read_text().splitlines()
+        self.assertEqual(lines.count("/docs/verif/"), 1)
+        self.assertEqual(lines.count("/.ztp/evidence/"), 1)
+        self.assertIn("git rm -r --cached docs/verif", result.stdout)
+
+    def test_verif_current_holds_with_a_gitignored_record(self):
+        (self.root / ".gitignore").write_text("/docs/verif/\n")
+        (self.root / "app.py").write_text("print('v1')\n")
+        self.run_command("git", "add", "-A")
+        tree = self.run_command("git", "write-tree").stdout.strip()
+        record = self.root / "docs/verif/s01-book.md"
+        record.parent.mkdir(parents=True)
+        record.write_text(f"Tree: {tree}\n\nVerification status: complete\n")
+        self.commit()
+        self.assertEqual(self.run_command("git", "ls-files", "docs/verif").stdout, "")
+        self.assertEqual(self.run_command("git", "rev-parse", "HEAD^{tree}").stdout.strip(), tree)
+        self.gate("verif-current", "s01-book")
+        (self.root / "app.py").write_text("print('v2')\n")
+        self.commit()
+        self.gate("verif-current", "s01-book", expected=1)
+        record.unlink()
+        result = self.gate("verif-current", "s01-book", expected=1)
+        self.assertIn("never committed", result.stderr)
+
+    def test_verif_clean_accepts_only_root_md_records(self):
+        verif = self.root / "docs/verif"
+        self.gate("verif-clean")
+        verif.mkdir(parents=True)
+        tree = self.run_command("git", "rev-parse", "HEAD^{tree}").stdout.strip()
+        (verif / "s01-book.md").write_text(f"Tree: {tree}\n\nVerification status: complete\n")
+        (verif / "c01-docs.md").write_text("record\n")
+        (verif / ".DS_Store").write_text("")
+        self.gate("verif-clean")
+        self.gate("verif-current", "s01-book")
+        for intruder in ("shot.png", "run.log", "result.json", "check.sh", "s01-book/notes.md"):
+            with self.subTest(intruder=intruder):
+                path = verif / intruder
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("x\n")
+                result = self.gate("verif-clean", expected=1)
+                self.assertIn("docs/verif/" + intruder.split("/")[0], result.stderr)
+                self.assertIn(".ztp/evidence/", result.stderr)
+                self.gate("verif-current", "s01-book", expected=1)
+                path.unlink()
+                if path.parent != verif:
+                    path.parent.rmdir()
+        self.gate("verif-clean")
+
     def test_tests_frozen_passes_when_code_lands_after_untouched_tests(self):
         self.frozen_tests_fixture()
         self.gate("tests-frozen", "s01-book")

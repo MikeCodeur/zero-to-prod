@@ -26,6 +26,7 @@ You are FORBIDDEN from:
 - Designing a screen the story doesn't ask for.
 - Handing over a mockup you have not rendered and looked at (Step 5).
 - Drawing a mockup for a screen the product already ships (Step 4), or measuring anything at all.
+- Writing `validated: yes` without the validation of Step 7.
 
 ## Workflow
 
@@ -82,7 +83,8 @@ deliverable, chosen by `Design source`, never both:
   fields and actions, every state, out-of-scope stated, and the design-system constraints
   copied in so it is self-contained and pasteable. **That file is the deliverable — not a chat
   message**: it survives the session and travels to the tool. The result comes back as
-  `mockup.html` in the same folder, and dropping it there **is** the validation. Nothing came
+  `mockup.html` in the same folder; dropping it there completes the deliverable, which then
+  goes through Step 5 and the gate of Step 7. Nothing came
   back → the phase is unfinished: stop and say so. Never generate in its place, never hand
   over to `/ztp-plan`.
 
@@ -117,6 +119,24 @@ Any need the design system doesn't cover → record it under "Design system gaps
 
 Timebox: defined enough to unblock the Plan. Finished is not the same as pixel-perfect — cover the states, don't polish forever.
 
+### Step 7 — Validation (fail-closed)
+Once the deliverable exists and has been checked, open `docs/designs/<id>/design.md` with the
+frontmatter `validated: no`. Then, per `Design validation` in AGENTS.local.md (missing setting →
+`human`):
+
+- `human` — show the design: the mockup's path (or the brief's, with the returned mockup), the
+  themes and form factors checked, what could not be checked, and the gaps noted. Then ask via
+  AskUserQuestion: "Validate this design?" — Validate / Modify / Stop. **Only Validate writes
+  `validated: yes`.** Modify → apply the changes, check again (Step 5), ask again. Stop → the
+  design stays `validated: no`.
+- `agent` — re-read the design against the story's acceptance criteria and
+  `docs/design-system.md` (every state covered, nothing outside the system, gaps recorded), then
+  write `validated: yes` yourself. Say plainly that nobody else looked at it.
+
+A derived screen (`design.md` alone) goes through the same gate. If `design.md` already exists
+when the command runs, skip straight to this gate. `/ztp-plan` refuses a story with a screen
+until its `design.md` says `validated: yes` (`ztp-gate design-validated <id>`).
+
 ## Where the design lives (hard rule)
 Everything lands in the repository, under `docs/designs/<id>/`, and travels with `feature/<id>`.
 
@@ -128,6 +148,7 @@ Everything lands in the repository, under `docs/designs/<id>/`, and travels with
 **The phase ends when its deliverable exists, and not before** — `design.md` alone for a
 derived screen; `design.md` plus the one visual artifact for a new one. On the internal path
 the agent validates that artifact visually, rendered, in every declared theme and form factor; on the
-external path, the mockup being dropped in the folder is the validation.
+external path, the mockup being dropped in the folder is what makes the deliverable exist. Either
+way, the design is not plannable until Step 7 has written `validated: yes`.
 
-End with: "Design ready (docs/designs/<id>/design.md, + mockup.html or brief.md when the screen is new), rendered and checked. Next step: /ztp-plan <id>"
+End with: "Design validated (docs/designs/<id>/design.md, + mockup.html or brief.md when the screen is new), rendered and checked. Next step: /ztp-plan <id>" — or "Design awaiting validation. Rerun /ztp-design <id> to validate." if it was not validated.

@@ -24,6 +24,7 @@ Flow threshold:    2
 Design source:     internal
 Design skill:      —
 Design tool:       —
+Design validation: human
 Test budget:       25
 Test validation:   agent
 Fix level:         critical
@@ -65,6 +66,7 @@ CI evals:          no
 | Plan validation | `human` (a checkpoint blocks until you validate) · `autonomous` (the agent validates its own plan) |
 | Ship confirmation | `human` (asked before any merge) · `automatic` |
 | Design source | `internal` (the agent draws, using `Design skill`) · `external` (a brief goes to `Design tool`). Still `—` on a product with a user interface → `/ztp-design-system` sets it from the tool chosen there |
+| Design validation | who approves a story's design before it is planned: `human` (a checkpoint blocks until you validate) · `agent` (the agent checks it against the story's criteria and the design system, and validates it itself) |
 | Story track | `auto` (the story's complexity picks the lane) · `full` (always the six-phase pipeline) · `flow` (always `/ztp-flow`) |
 | Flow threshold | complexity at or below which `auto` picks `/ztp-flow` |
 | Test budget | tests per story — a plan wanting more says why |

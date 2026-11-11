@@ -27,6 +27,8 @@ If docs/research/<id>.md doesn't exist, point out that /ztp-research <id> is rec
 
 If the story has UI, the plan follows the screen defined in docs/designs/<id>/design.md: it references the design system's components and never invents new ones. The HTML mockup is a reference, not a source of code.
 
+**A story with a screen is planned only on a validated design (fail-closed).** `ztp-gate design-validated <id>` — or, without the hook, docs/designs/<id>/design.md must exist with `validated: yes` in its frontmatter. Missing → STOP: "No design for this story. Run /ztp-design <id>." Present but not validated → STOP: "Design not validated. Rerun /ztp-design <id> to validate it." Write no plan before it passes.
+
 Proceed as follows:
 1. Isolate the target story and its acceptance criteria.
 2. Break it into ordered tasks, each one small and verifiable. Lean on the
