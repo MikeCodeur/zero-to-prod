@@ -211,6 +211,38 @@ class Repository(unittest.TestCase):
     def gate(self, *args, expected=0):
         return self.run_command("bash", str(METHOD / "src/hooks/ztp-gate.sh"), *args, expected=expected)
 
+    def test_acceptance_tests_gate_one_row_per_criterion_within_budget(self):
+        (self.root / "docs").mkdir(exist_ok=True)
+        (self.root / "docs/stories.md").write_text(
+            "## Story s01-book — Book a slot\n### Acceptance criteria\n"
+            "- [ ] AC1 — books an open slot\n- [ ] AC2 — refuses a closed slot\n- [ ] AC3 — shows the slot in brand colours\n"
+            "### Dependencies\nNone\n## Story s02-other — Other\n### Acceptance criteria\n- [ ] AC9 — elsewhere\n")
+        plans = self.root / "docs/plans"
+        plans.mkdir(parents=True, exist_ok=True)
+        header = "---\nvalidated: no\n---\n## Acceptance tests\n| Criterion | Test (file › name) | Layer |\n|---|---|---|\n"
+        ac1 = "| AC1 | booking.test.ts › AC1 — books | service |\n"
+        ac2 = "| AC2 | booking.test.ts › AC2 — refuses | service |\n"
+        ac3 = "| AC3 | `UI check` — slot colours | visual |\n"
+        plan = plans / "s01-book.md"
+
+        def check(rows, expected, budget=None):
+            plan.write_text(header + rows + "\n## Test strategy\n| AC1 | not a row of the table | x |\n")
+            (self.root / "AGENTS.local.md").write_text(f"Test budget:       {budget}\n" if budget else "")
+            return self.gate("acceptance-tests", "s01-book", expected=expected).stderr
+
+        check(ac1 + ac2 + ac3, 0)
+        self.assertIn("AC1 has 2 rows", check(ac1 + ac1.replace("books", "books twice") + ac2 + ac3, 1))
+        self.assertIn("AC2 of docs/stories.md has no row", check(ac1 + ac3, 1))
+        self.assertIn("AC9, which docs/stories.md does not list", check(ac1 + ac2 + ac3 + "| AC9 | x.test.ts › AC9 | service |\n", 1))
+        self.assertIn("above Test budget 1", check(ac1 + ac2 + ac3, 1, budget=1))
+        check(ac1 + ac2 + ac3, 0, budget=2)
+        self.assertIn("3 acceptance tests, above Test budget 2", check(ac1 + ac2 + ac3.replace("`UI check` — slot colours", "colours.test.ts › AC3"), 1, budget=2))
+
+        (self.root / "docs/tickets").mkdir()
+        (self.root / "docs/tickets/s01-book.md").write_text("## Acceptance criteria\n- [ ] AC1 — restored\n## Complexity\n1\n")
+        self.assertIn("the table has a row for AC2", check(ac1 + ac2, 1))
+        check(ac1, 0)
+
     def test_design_validated_requires_validated_yes_in_design_md(self):
         self.assertIn("no design", self.gate("design-validated", "s01-book", expected=1).stderr)
         design = self.root / "docs/designs/s01-book/design.md"

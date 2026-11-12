@@ -8,7 +8,7 @@ The rules here decide what gets written and what gets run. They live in a skill 
 in AGENTS.md because only two agents act on them — the one that writes the tests and the one
 that judges them — and every other context was paying to load them.
 
-**Budget: `Test budget` from `AGENTS.local.md` (25 by default), and a story that needs more says why in its plan.**
+**The only budget is `Test budget` in `AGENTS.local.md` (25 when absent).** A plan never declares its own budget or an override — not "Budget: 40", not anyone's exception, not one copied from an earlier plan. A story that needs more tests stops: the plan says so, and is not validated. Raising the budget is a change to AGENTS.local.md, made by its owner, outside the plan.
 
 Measured in production use: the suite grows by dozens of tests per story, and **most of
 those stories still ship their central invariant with no net at all** — every one found by
@@ -17,7 +17,9 @@ slow: a suite that takes half an hour to run is a suite nobody runs.
 
 **The cycle: acceptance tests first, then the code.**
 
-1. **One test per acceptance criterion** — not one per function. Its name carries the
+1. **One test per acceptance criterion** — not one per function, and never several for one
+   criterion: the plan's table has exactly one row per criterion, and `ztp-gate acceptance-tests
+   <id>` refuses anything else. Its name carries the
    criterion's id (`AC2 — refuses a booking outside opening hours`), and it lives at the layer
    where the rule lives (table below). A purely visual criterion names its `UI check` instead.
 2. **Red for the right reason.** Run the new files with `Test focused`: each fails on its

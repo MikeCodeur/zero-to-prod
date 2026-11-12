@@ -239,7 +239,7 @@ a parallel state database. An inaccessible external source is unverified, never 
 reviewed per `Test validation`, then frozen: the code phase never edits a frozen test, and a
 test believed wrong stops the work. Each rule is still tested once, at the layer where it lives.
 
-**Budget: `Test budget` (25 by default); a story needing more says why in its plan.** Volume
+**Budget: `Test budget` (25 by default), the only one: a plan cannot raise it, and a story needing more stops.** Volume
 is not a net, and a suite that takes half an hour is a suite nobody runs. **The criterion
 that replaces the count: a test that stays green when the rule it names is deleted is worse
 than no test.**

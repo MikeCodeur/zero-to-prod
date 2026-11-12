@@ -35,6 +35,10 @@ If you can't invoke the Agent tool, stop and report the error. Don't improvise.
 ### Step 2 — Acceptance tests, then code
 The story runs in three moves. A FIX run skips 2a and 2b: the tests are already frozen.
 
+**Before 2a — the plan's acceptance-tests check.** Run `ztp-gate acceptance-tests <id>` in the
+worktree. A failure → STOP: show what failed and send the plan back to /ztp-plan <id>. No
+implementer is invoked.
+
 **2a — Acceptance tests.** Skip when docs/tests/<id>.md already says `validated: yes`.
 Otherwise delegate as below with `mode: tests`: the implementer writes one test per acceptance
 criterion and their skeletons, proves each red on its assertion, and commits them alone.

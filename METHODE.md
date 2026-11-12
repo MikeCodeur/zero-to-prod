@@ -108,6 +108,7 @@ One story = one `feature/<id>` branch = one dedicated worktree = one PR = one co
 |---|---|---|
 | Design validated | `validated: yes` in `docs/designs/<id>/design.md` (stories with a screen) | The plan |
 | Plan validated | `validated: yes` in `docs/plans/<id>.md` | Execution, and any code commit on the story branch (git hook) |
+| Acceptance tests mapped | One row per story criterion in the plan's "Acceptance tests" table (`UI check` for a visual one), within `Test budget` — the only budget, no override | Plan validation, execution, and the tests review |
 | Tests frozen | The files listed in `docs/tests/<id>.md` unchanged since the `test(<id>)` commit | The review: a frozen test edited after validation is critical |
 | Records only | `docs/verif/` holds only `<id>.md` records; throwaway proof lives in `.ztp/evidence/<id>/` | The ship; a major at review |
 | Verification current | The tree recorded in `docs/verif/<id>.md` (local, gitignored) matches the commit | Decides whether the review trusts the results or replays them; a missing record (fresh clone, CI) means they are replayed |

@@ -60,7 +60,7 @@ downstream guard answer for the guard under test, or a double that replays a cla
 evaluating it, both read as correct and prove nothing. Reject decorative tests: CSS classes,
 DOM structure, static labels, prop echoes and inventories are not coverage.
 
-*Judge the volume.* `Test budget` per story, more only if the plan justified it. A permission
+*Judge the volume.* `Test budget` per story, the only budget — an override the plan declares is a finding, never a justification. A permission
 matrix replayed per command, an enum tested exhaustively, an adapter re-asserting an access refusal the
 policy already owns — each is a finding, classified minor, and worth naming because CI time
 is a real cost. **The same for the story's end-to-end spec**, against the doctrine's

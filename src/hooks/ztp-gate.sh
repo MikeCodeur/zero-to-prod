@@ -6,6 +6,7 @@
 # Subcommands:
 #   ztp-gate design-validated <id>   exit 0 if docs/designs/<id>/design.md has `validated: yes`
 #   ztp-gate plan-validated <id>     exit 0 if docs/plans/<id>.md has `validated: yes`
+#   ztp-gate acceptance-tests <id>   exit 0 if the plan maps each story criterion to exactly one row, within `Test budget`
 #   ztp-gate ship-allowed  <id>      exit 0 if docs/reviews/<id>.md has `Ship allowed: yes`
 #   ztp-gate verif-current <id>      exit 0 if docs/verif/<id>.md proves the CURRENT code was verified
 #   ztp-gate verif-clean             exit 0 if docs/verif/ holds only .md records at its root
@@ -48,6 +49,60 @@ plan_validated() {
   fi
   echo "ztp-gate: plan '$id' not validated (docs/plans/$id.md lacks 'validated: yes'). Validate it via /ztp-plan $id." >&2
   return 1
+}
+
+# The plan's "Acceptance tests" table: exactly one row per criterion of the story (docs/tickets/<id>.md
+# when it exists, else the story's section of docs/stories.md), no row for a criterion the story does
+# not have, and no more test rows than `Test budget` in AGENTS.local.md (25 when absent). The only
+# budget is that setting: a plan cannot raise it. A purely visual criterion's row says `UI check` in
+# its test column, and counts as its row but not as a test.
+acceptance_tests() {
+  local id="$1" root; root="$(repo_root)"
+  local plan="$root/docs/plans/$id.md" source criteria rows budget
+  [ -f "$plan" ] || { echo "ztp-gate: no plan for '$id' (docs/plans/$id.md missing). Run /ztp-plan $id." >&2; return 1; }
+  if [ -f "$root/docs/tickets/$id.md" ]; then
+    source="docs/tickets/$id.md"
+    criteria="$(awk '/^## /{on=($0 ~ /^## Acceptance criteria/)} on && /^[[:space:]]*- / && match($0,/AC[0-9]+/){print substr($0,RSTART,RLENGTH)}' "$root/$source")"
+  elif [ -f "$root/docs/stories.md" ]; then
+    source="docs/stories.md"
+    criteria="$(awk -v id="$id" '
+      /^## /{ story=(index($0, "## Story " id " ")==1 || $0=="## Story " id); crit=0; next }
+      story && /^### /{ crit=($0 ~ /^### Acceptance criteria/); next }
+      story && crit && /^[[:space:]]*- / && match($0,/AC[0-9]+/){ print substr($0,RSTART,RLENGTH) }' "$root/$source")"
+  else
+    echo "ztp-gate: no work source for '$id' (neither docs/tickets/$id.md nor docs/stories.md)." >&2; return 1
+  fi
+  [ -n "$criteria" ] || { echo "ztp-gate: no acceptance criterion found for '$id' in $source." >&2; return 1; }
+  # One line per table row: <criterion id or ?>\t<ui|test>
+  rows="$(awk '
+    /^## /{ on=($0 ~ /^## Acceptance tests/); next }
+    on && /^[[:space:]]*\|/ {
+      n=split($0, c, "|"); crit=c[2]; test=c[3]
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", crit); gsub(/[`*[:space:]]+/, " ", test); sub(/^ /, "", test)
+      if (crit=="Criterion" || crit ~ /^:?-+:?$/) next
+      kind=(tolower(test) ~ /^ui check/) ? "ui" : "test"
+      if (match(crit, /AC[0-9]+/)) print substr(crit,RSTART,RLENGTH) "\t" kind; else print "?\t" kind
+    }' "$plan")"
+  budget="$(sed -n 's/^Test budget:[[:space:]]*\([0-9][0-9]*\)[[:space:]]*$/\1/p' "$root/AGENTS.local.md" 2>/dev/null | head -n1)"
+  budget="${budget:-25}"
+  local fail=0 ac count tests
+  [ -n "$rows" ] || { echo "ztp-gate: docs/plans/$id.md has no \"Acceptance tests\" table rows." >&2; return 1; }
+  if printf '%s\n' "$rows" | grep -q '^?'; then
+    echo "ztp-gate: a row of the \"Acceptance tests\" table names no criterion id (ACn)." >&2; fail=1
+  fi
+  for ac in $criteria; do
+    count="$(printf '%s\n' "$rows" | awk -F'\t' -v ac="$ac" '$1==ac' | wc -l | tr -d ' ')"
+    if [ "$count" = 0 ]; then echo "ztp-gate: $ac of $source has no row in the plan's \"Acceptance tests\" table." >&2; fail=1
+    elif [ "$count" -gt 1 ]; then echo "ztp-gate: $ac has $count rows — one criterion, one test (or one UI check)." >&2; fail=1; fi
+  done
+  for ac in $(printf '%s\n' "$rows" | cut -f1 | grep -v '^?' | sort -u); do
+    printf '%s\n' "$criteria" | grep -qx "$ac" || { echo "ztp-gate: the table has a row for $ac, which $source does not list." >&2; fail=1; }
+  done
+  tests="$(printf '%s\n' "$rows" | awk -F'\t' '$2=="test"' | wc -l | tr -d ' ')"
+  if [ "$tests" -gt "$budget" ]; then
+    echo "ztp-gate: $tests acceptance tests, above Test budget $budget (AGENTS.local.md). A plan cannot raise it." >&2; fail=1
+  fi
+  return "$fail"
 }
 
 ship_allowed() {
@@ -157,13 +212,14 @@ cmd="${1:-}"
 case "$cmd" in
   design-validated) design_validated "${2:?story id required}" ;;
   plan-validated)  plan_validated "${2:?story id required}" ;;
+  acceptance-tests) acceptance_tests "${2:?story id required}" ;;
   ship-allowed)    ship_allowed   "${2:?story id required}" ;;
   verif-current)   verif_current  "${2:?story id required}" ;;
   verif-clean)     verif_clean ;;
   tests-frozen)    tests_frozen   "${2:?story id required}" ;;
   pre-commit)      pre_commit ;;
   *)
-    echo "usage: ztp-gate {design-validated <id>|plan-validated <id>|ship-allowed <id>|verif-current <id>|verif-clean|tests-frozen <id>|pre-commit}" >&2
+    echo "usage: ztp-gate {design-validated <id>|plan-validated <id>|acceptance-tests <id>|ship-allowed <id>|verif-current <id>|verif-clean|tests-frozen <id>|pre-commit}" >&2
     exit 2
     ;;
 esac

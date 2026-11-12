@@ -69,7 +69,7 @@ CI evals:          no
 | Design validation | who approves a story's design before it is planned: `human` (a checkpoint blocks until you validate) · `agent` (the agent checks it against the story's criteria and the design system, and validates it itself) |
 | Story track | `auto` (the story's complexity picks the lane) · `full` (always the six-phase pipeline) · `flow` (always `/ztp-flow`) |
 | Flow threshold | complexity at or below which `auto` picks `/ztp-flow` |
-| Test budget | tests per story — a plan wanting more says why |
+| Test budget | tests per story, the only budget — a plan cannot raise it; a story that needs more stops |
 | Test validation | who reviews the acceptance tests before any code: `agent` (the reviewer, fresh context) · `human` (a checkpoint blocks) |
 | Fix level | `critical` (only blocking reviews trigger correction) · `major` (also correct majors); absent → `critical` |
 | Critical fix loops | non-negative integer, maximum correction/review attempts triggered by a critical or blocked review per story; absent → `2`. `0` stops at the first blocking review |
