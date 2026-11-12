@@ -62,7 +62,8 @@ rename, skip, loosen or delete them. A frozen test you believe wrong: stop and r
    progress, it does not trigger commits.
 
 For a presentation-only task, write no synthetic component test: name the visual check and
-its observed result instead. **And open the screen the way `UI check` says before you finish** (`—`: the product has no screen), for any
+its observed result instead. No component test outside the `testing-doctrine` component-test
+rule, even when the plan does not forbid one. **And open the screen the way `UI check` says before you finish** (`—`: the product has no screen), for any
 task that ships one — every defect that made a feature not work at all was found that way.
 
 ## After the last task, in this order

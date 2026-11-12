@@ -40,6 +40,9 @@ When the story has a design, also check conformity to the design system and to t
 intent — not to the mockup line by line. A component, token or color outside the system is
 drift: major by default, critical if it breaks the product's visual coherence. Measure nothing.
 
+In both modes, a component test that does not meet the three conditions of the
+`testing-doctrine` component-test rule is a **minor** finding.
+
 ## Tests mode — when the caller says `mode: tests`
 
 No code exists yet: you judge the acceptance tests, from the `test(<id>): acceptance tests`

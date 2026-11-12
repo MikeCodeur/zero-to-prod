@@ -47,11 +47,25 @@ is not a browser.
 | Business/service layer and its authorization | Everything that matters, **with the repository mocked**. The **role or permission matrix belongs to the policy test, written once** — a service command invents no access rule, it calls the policy. The service test then covers the **business rule**: one nominal case, one refusal per rule it owns. |
 | Persistence (DAO / repository) | **The only tests on a real database.** Only what no reading catches: the idempotency ordering of a retryable mutation, and the tenant/ownership clause of each query. Call the repository **directly** — the service refuses upstream, so an applicative call never reaches the guard. |
 | Adapter (HTTP route, controller, CLI command, message handler, screen action) | Only what the service does not do: payload parsing, field clearing, status mapping. **An adapter never re-tests an access refusal** — it verifies once that a refusal becomes the adapter's refusal response (a 403, an error code, a message), never per role and never per rule. |
-| Component / view | Almost none. Only genuine conditional logic of its own; rendering a list is not a rule. |
+| Component / view | Almost none: only under the component-test rule below. Rendering a list is not a rule. |
 | End-to-end | One scenario, for what unit tests structurally cannot see — typically a side effect written inside a transaction, which mocked repositories hide. The rules below. |
 
 Most tests are unit or service tests with a mocked repository; a real database for DAOs only;
 one end-to-end per story.
+
+**Component tests, specifically**
+
+A component gets a test **only if it meets all three conditions**:
+
+1. **It belongs to the app** — not a design-system component, which the design system owns.
+2. **It carries logic tested nowhere else** — state, a display condition, a calculation, an
+   interaction. Logic a service, a hook or a utility test already covers does not count.
+3. **A defect in it breaks a key journey** — not a cosmetic glitch on a secondary screen.
+
+Otherwise, no component test: the on-screen check (`UI check`) and the end-to-end spec cover
+it. And whatever the conditions, a purely visual task never gets a component test manufactured
+for it. Whoever names a component test says which of the three conditions each one meets; a
+component test that does not meet all three is a minor finding.
 
 **End-to-end, specifically**
 

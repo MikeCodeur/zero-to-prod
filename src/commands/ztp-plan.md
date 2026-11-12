@@ -36,7 +36,9 @@ Proceed as follows:
    data contract or interaction must name the test that can fail. A purely
    presentational task may instead name a focused visual check (per `UI check`) plus
    lint and typecheck; never manufacture a component test merely so every task
-   owns one.
+   owns one. A component task names a component test only under the `testing-doctrine`
+   component-test rule, and says how it meets each of the three conditions; otherwise it names
+   its `UI check`.
 **Cap the plan at ~250 lines.** The decisions table stays whole — it is what stops the
 implementer re-deciding — but the prose around it need not argue twice.
 
