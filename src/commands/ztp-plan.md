@@ -36,11 +36,13 @@ Proceed as follows:
    data contract or interaction must name the test that can fail. A purely
    presentational task may instead name a focused visual check (per `UI check`) plus
    lint and typecheck; never manufacture a component test merely so every task
-   owns one.
+   owns one. A component task names a component test only under the `testing-doctrine`
+   component-test rule, and says how it meets each of the three conditions; otherwise it names
+   its `UI check`.
 **Cap the plan at ~250 lines.** The decisions table stays whole — it is what stops the
 implementer re-deciding — but the prose around it need not argue twice.
 
-**Test budget: `Test budget` from AGENTS.local.md (25 by default).** A plan that wants more says why, in its test strategy.
+**The only budget is `Test budget` in AGENTS.local.md (25 when absent).** A plan never declares its own budget or an override — not "Budget: 40", not anyone's exception, not one copied from an earlier plan. A story that needs more tests stops: the plan says so, and is not validated. Raising the budget is a change to AGENTS.local.md, made by its owner, outside the plan.
 The permission matrix is written ONCE, in the policy test; a service test covers the
 business rule, not the access rule again. No enum exhaustiveness, never the same rule at
 two layers, and no adapter re-asserting an access refusal. Full rationale in the `testing-doctrine` skill —
@@ -58,12 +60,13 @@ invariant shipped with no net at all.
    of a bloated plan.
 4. If planning forces a structural choice (library, pattern, data model) with rejected alternatives, record it as an ADR in `docs/decisions/` (@templates/adr.md) — it will travel with the story branch.
 5. Write the plan to `docs/plans/<id>.md`, frontmatter `validated: no`.
-6. Validation, per `Plan validation` in AGENTS.local.md (missing file or setting → STOP: "No project settings. Run /ztp-setup."):
+6. **Acceptance-tests check (fail-closed).** Run `ztp-gate acceptance-tests <id>`: exactly one row per criterion of the work source, none missing, none for a criterion it does not list, and no more test rows than `Test budget` — a purely visual criterion's row says `UI check`. A failure means no `validated: yes`, under either setting: show what failed, leave the plan `validated: no`, and stop. Fix the table, or — if the story genuinely needs more — say so and stop.
+7. Validation, per `Plan validation` in AGENTS.local.md (missing file or setting → STOP: "No project settings. Run /ztp-setup."):
    - `human` — checkpoint (AskUserQuestion): "Validate this plan?" — options: Validate / I'll review it first. On Validate, set `validated: yes` in the plan's frontmatter.
    - `autonomous` — no checkpoint: re-read the plan against the story's acceptance criteria, then set `validated: yes` yourself. State plainly that nobody else looked at it.
    /ztp-execute refuses an unvalidated plan either way.
 
-If the plan file already exists when the command runs, skip straight to the validation checkpoint: show the summary and ask.
+If the plan file already exists when the command runs, skip straight to step 6: the check, then the validation checkpoint.
 
 Write no code. This command produces a plan, not code.
 

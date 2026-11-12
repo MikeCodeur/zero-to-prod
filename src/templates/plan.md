@@ -30,7 +30,8 @@ Research: `docs/research/<id>.md` — read it first; this plan does not repeat i
 ## Acceptance tests
 <One row per acceptance criterion: exactly one test, at the layer where its rule lives, or its
  `UI check` for a purely visual criterion. Written first, proven red, reviewed and frozen
- before any code. Within `Test budget` from AGENTS.local.md; a plan that wants more says why.>
+ before any code. At most `Test budget` from AGENTS.local.md, the only budget: no override here.
+ `ztp-gate acceptance-tests <id>` checks this table.>
 
 | Criterion | Test (file › name) | Layer |
 |---|---|---|

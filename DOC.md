@@ -48,7 +48,7 @@ Format: one setting per line, `Name: value`, no trailing comment. The value is e
 | `Design source` | `internal` (the agent draws, via `Design skill`) · `external` (a brief goes to `Design tool`). Still `—` on a product with a user interface → `/ztp-design-system` sets it from the tool chosen there |
 | `Design skill` / `Design tool` | which one, when there is one. `—` is valid: the agent draws it itself |
 | `Design validation` | `human` (a checkpoint blocks until you validate the design) · `agent` (the agent checks it against the story and the design system, and validates it itself) |
-| `Test budget` | tests per story; a plan wanting more says why |
+| `Test budget` | tests per story, the only budget: a plan cannot raise it, and a story that needs more stops |
 | `Test validation` | who reviews the acceptance tests before any code: `agent` (the reviewer, fresh context — default) · `human` (a checkpoint blocks) |
 | `Fix level` | `critical` (default when absent) · `major` (also correct majors before Ship) |
 | `Critical fix loops` | maximum critical-triggered correction/review attempts per story, non-negative integer; absent → `2`. `0` stops at the first blocking review |
@@ -292,11 +292,12 @@ Three mechanical, file-based gates. None of them is a judgment call — each is 
 | --- | --- | --- |
 | Design validated | `docs/designs/<id>/design.md` frontmatter has `validated: yes` (stories with a screen) | `/ztp-plan` |
 | Plan validated | `docs/plans/<id>.md` frontmatter has `validated: yes` | any code commit on `feature/<id>`, and `/ztp-execute` |
+| Acceptance tests mapped | `ztp-gate acceptance-tests <id>`: one row per story criterion in the plan's table (`UI check` for a visual one), none missing or extra, test rows within `Test budget` | the plan's `validated: yes`, `/ztp-execute` before the tests are written, and the tests review (`validated: no`) |
 | Verification current | `docs/verif/<id>.md` (local, gitignored) records a `Tree:` matching the commit outside `docs/` | nothing by itself — it decides whether the reviewer trusts the run or repeats it |
 | Records only | `docs/verif/` holds only `.md` records at its root; screenshots, logs, JSON, scripts go to `.ztp/evidence/<id>/` (gitignored) | `/ztp-ship`; a major at review. Also run inside `verif-current` |
 | Ship allowed | `docs/reviews/<id>.md` ends with `Ship allowed: yes` | `/ztp-ship`, entirely |
 
-`src/hooks/ztp-gate.sh` implements them (`design-validated`, `plan-validated`, `verif-current`, `verif-clean`, `ship-allowed`, `tests-frozen`, plus `pre-commit`).
+`src/hooks/ztp-gate.sh` implements them (`design-validated`, `plan-validated`, `acceptance-tests`, `verif-current`, `verif-clean`, `ship-allowed`, `tests-frozen`, plus `pre-commit`).
 
 **A critical always blocks the ship.** `/ztp-review` owns the correction policy, shared by
 manual commands, Flow and Orchestrator. `Fix level: critical` preserves the existing behavior;
@@ -325,7 +326,7 @@ A plan file that merely exists is not a validated plan. An absent verification r
 
 The full doctrine is the `testing-doctrine` skill. What it comes down to:
 
-**Volume is not a net.** The suite grows by dozens of tests per story while the central invariant ships with no net at all — found by mutation during review, never by the count. `Test budget` (25 by default) caps it; a plan wanting more says why. **The criterion that replaces the count: a test that stays green when the rule it names is deleted is worse than no test.**
+**Volume is not a net.** The suite grows by dozens of tests per story while the central invariant ships with no net at all — found by mutation during review, never by the count. `Test budget` (25 by default) caps it, and it is the only budget: a plan cannot declare an override. **The criterion that replaces the count: a test that stays green when the rule it names is deleted is worse than no test.**
 
 **Where a rule is tested is where it lives.** The permission matrix once, in the policy test. No enum exhaustiveness. Never the same rule at two layers. No adapter re-asserting a 403 the policy already owns.
 

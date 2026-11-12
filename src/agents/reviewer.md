@@ -40,12 +40,18 @@ When the story has a design, also check conformity to the design system and to t
 intent — not to the mockup line by line. A component, token or color outside the system is
 drift: major by default, critical if it breaks the product's visual coherence. Measure nothing.
 
+In both modes, a component test that does not meet the three conditions of the
+`testing-doctrine` component-test rule is a **minor** finding.
+
 ## Tests mode — when the caller says `mode: tests`
 
 No code exists yet: you judge the acceptance tests, from the `test(<id>): acceptance tests`
 commit. Read the story's criteria, the plan's "Acceptance tests" table, docs/tests/<id>.md and
-the test files. Check: one test per criterion, none missing and none beyond the plan; each at
-the layer the doctrine assigns; the budget; the skeletons carry no logic; none of the six
+the test files. First run `ztp-gate acceptance-tests <id>`: a failure is a finding and the
+verdict is `validated: no`, whatever else you find. Then check: one test per criterion, none
+missing and none beyond the plan; each at the layer the doctrine assigns; the budget, which is
+`Test budget` in AGENTS.local.md and nothing else — a budget or an override the plan declares is
+itself a finding, never a reason to accept more; the skeletons carry no logic; none of the six
 hollow shapes. Run `Test focused` on the files and confirm each fails on its assertion, not on
 an import or a setup. Then set docs/tests/<id>.md to `validated: yes`, or to `validated: no`
 with the findings under "Findings". Edit nothing else.

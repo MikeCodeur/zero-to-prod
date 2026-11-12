@@ -8,7 +8,7 @@ The rules here decide what gets written and what gets run. They live in a skill 
 in AGENTS.md because only two agents act on them — the one that writes the tests and the one
 that judges them — and every other context was paying to load them.
 
-**Budget: `Test budget` from `AGENTS.local.md` (25 by default), and a story that needs more says why in its plan.**
+**The only budget is `Test budget` in `AGENTS.local.md` (25 when absent).** A plan never declares its own budget or an override — not "Budget: 40", not anyone's exception, not one copied from an earlier plan. A story that needs more tests stops: the plan says so, and is not validated. Raising the budget is a change to AGENTS.local.md, made by its owner, outside the plan.
 
 Measured in production use: the suite grows by dozens of tests per story, and **most of
 those stories still ship their central invariant with no net at all** — every one found by
@@ -17,7 +17,9 @@ slow: a suite that takes half an hour to run is a suite nobody runs.
 
 **The cycle: acceptance tests first, then the code.**
 
-1. **One test per acceptance criterion** — not one per function. Its name carries the
+1. **One test per acceptance criterion** — not one per function, and never several for one
+   criterion: the plan's table has exactly one row per criterion, and `ztp-gate acceptance-tests
+   <id>` refuses anything else. Its name carries the
    criterion's id (`AC2 — refuses a booking outside opening hours`), and it lives at the layer
    where the rule lives (table below). A purely visual criterion names its `UI check` instead.
 2. **Red for the right reason.** Run the new files with `Test focused`: each fails on its
@@ -45,11 +47,25 @@ is not a browser.
 | Business/service layer and its authorization | Everything that matters, **with the repository mocked**. The **role or permission matrix belongs to the policy test, written once** — a service command invents no access rule, it calls the policy. The service test then covers the **business rule**: one nominal case, one refusal per rule it owns. |
 | Persistence (DAO / repository) | **The only tests on a real database.** Only what no reading catches: the idempotency ordering of a retryable mutation, and the tenant/ownership clause of each query. Call the repository **directly** — the service refuses upstream, so an applicative call never reaches the guard. |
 | Adapter (HTTP route, controller, CLI command, message handler, screen action) | Only what the service does not do: payload parsing, field clearing, status mapping. **An adapter never re-tests an access refusal** — it verifies once that a refusal becomes the adapter's refusal response (a 403, an error code, a message), never per role and never per rule. |
-| Component / view | Almost none. Only genuine conditional logic of its own; rendering a list is not a rule. |
+| Component / view | Almost none: only under the component-test rule below. Rendering a list is not a rule. |
 | End-to-end | One scenario, for what unit tests structurally cannot see — typically a side effect written inside a transaction, which mocked repositories hide. The rules below. |
 
 Most tests are unit or service tests with a mocked repository; a real database for DAOs only;
 one end-to-end per story.
+
+**Component tests, specifically**
+
+A component gets a test **only if it meets all three conditions**:
+
+1. **It belongs to the app** — not a design-system component, which the design system owns.
+2. **It carries logic tested nowhere else** — state, a display condition, a calculation, an
+   interaction. Logic a service, a hook or a utility test already covers does not count.
+3. **A defect in it breaks a key journey** — not a cosmetic glitch on a secondary screen.
+
+Otherwise, no component test: the on-screen check (`UI check`) and the end-to-end spec cover
+it. And whatever the conditions, a purely visual task never gets a component test manufactured
+for it. Whoever names a component test says which of the three conditions each one meets; a
+component test that does not meet all three is a minor finding.
 
 **End-to-end, specifically**
 

@@ -87,8 +87,8 @@ scope and establish the facts **before** writing a single task:
 5. Break the story into ordered tasks, each small and verifiable, resting on the facts you
    just established. A behaviour, business rule, data contract or interaction names the test
    that can fail; a purely presentational task names its visual check (per `UI check`) plus lint and typecheck
-   instead — never a manufactured component test. `Test budget` from AGENTS.local.md; a plan
-   that wants more says why. Where the tests go is settled in the `testing-doctrine` skill.
+   instead — never a manufactured component test. `Test budget` from AGENTS.local.md, the only
+   budget: no override, and a story that needs more stops. Where the tests go is settled in the `testing-doctrine` skill.
    Map every acceptance criterion to exactly one test in the "Acceptance tests" table.
 6. Past roughly six tasks, the story is not small: say so and suggest `/ztp-orchestrator <id>`
    rather than growing a short-track plan into a long one.
