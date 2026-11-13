@@ -80,4 +80,20 @@ counts. Never soften a verdict or raise a budget to move on.
 ## Phase 6 — Ship
 CHECKPOINT — per `Ship confirmation`. `human`: show the verdict and ask via AskUserQuestion: "Ship now?" — options: Ship / Not now; only an explicit Ship proceeds. `automatic`: proceed. Then run /ztp-ship's flow: mechanical gate (`grep -q '^Ship allowed: yes' docs/reviews/<id>.md`), then its exit gate — the cycle's only end-to-end and production-build run, per `E2E stage` and `Build stage` — then `Merge mode` — `pr`: push and open the PR (stopping there unless confirmation is `automatic`); `local`: squash into the target branch. After a proven merge: the deployment and the smoke test per docs/deployment.md, the rollback on a red smoke test. Clean up only once the merge is proven and the smoke test is green.
 
+**Exit gate red — one retry, autonomous runs only.** When the human authorized this run in
+autonomy (AGENTS.md, "run named stories or a backlog autonomously"), a red exit gate gets
+**one retry per story**, whatever its class — take the class /ztp-ship gave:
+- **story** → `/ztp-execute <id>` in fix mode, with the failing spec and its error, then
+  `/ztp-review <id>`, then `/ztp-ship <id>`;
+- **infra** → repair the sandbox per the `story-sandbox` skill, then `/ztp-ship <id>` again;
+- **base** → `/ztp-ship <id>` once more, unchanged (an unstable test sometimes passes). Still
+  red → an issue in the `Issue tracker`, and stop: the human decides.
+
+Still red after the retry → stop, with the exact blocking state: class, spec, error, retry used.
+Never a second retry. Record it in docs/reviews/<id>.md, under "Fix history", as a row whose
+first cell reads `Ship retry 1/1 · <class> · <result>`; it is not a correction attempt and counts
+against neither fix budget (a story-class retry's /ztp-execute records its own correction row). A retry that turns green with no code change is recorded
+`flaky`, never `fixed`. In a run the human did not authorize as autonomous, nothing changes:
+/ztp-ship classifies the failure, reports it and hands back.
+
 End with: "Story <id> shipped — deployed, smoke test green. Cycle complete." when production is proven, "PR opened — merging is yours." when it stops at the PR — or the exact blocking state if stopped (which phase, what's missing).
